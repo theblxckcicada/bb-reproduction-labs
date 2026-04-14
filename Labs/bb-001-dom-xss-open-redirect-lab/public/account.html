@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Account | Northstar Store</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <main class="account-shell">
+    <section class="account-page">
+      <header class="account-panel account-header">
+        <div>
+          <a href="/" class="inline-note">← Back to store</a>
+          <h2>Your account</h2>
+          <p>Manage orders, addresses, saved items, and membership benefits.</p>
+        </div>
+        <div id="profile-chip" class="profile-chip">
+          <div id="avatar" class="avatar">NS</div>
+          <div>
+            <strong id="member-name">Loading...</strong>
+            <span id="member-meta">Retrieving your account details</span>
+          </div>
+        </div>
+      </header>
+
+      <section id="metrics" class="account-metrics"></section>
+
+      <section class="account-grid">
+        <div class="stack">
+          <article class="account-panel">
+            <div class="row-between">
+              <div>
+                <h3>Recent orders</h3>
+                <p class="inline-note">Keep track of the latest purchases and delivery milestones.</p>
+              </div>
+              <div class="toolbar">
+                <a class="link-button" href="/loader">Open loader</a>
+                <button id="logout-button" class="primary" type="button">Sign out</button>
+              </div>
+            </div>
+            <div id="orders" class="order-list"></div>
+          </article>
+
+          <article class="account-panel">
+            <h3>Saved for later</h3>
+            <p class="inline-note">Items you've kept within easy reach for your next order.</p>
+            <div id="saved-items" class="recommend-list"></div>
+          </article>
+        </div>
+
+        <div class="stack">
+          <article class="account-panel">
+            <h3>Profile</h3>
+            <div id="profile-card" class="profile-card"></div>
+          </article>
+
+          <article class="account-panel">
+            <h3>Saved addresses</h3>
+            <div id="addresses" class="address-list"></div>
+          </article>
+
+          <article class="account-panel">
+            <h3>Quick overview</h3>
+            <ul class="mini-list">
+              <li><span>Support line</span><strong>Available 24/7</strong></li>
+              <li><span>Next rewards review</span><strong>End of month</strong></li>
+              <li><span>Preferred delivery</span><strong>Home address</strong></li>
+            </ul>
+          </article>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const logoutButton = document.getElementById("logout-button");
+
+    function metricCard(value, label) {
+      return `
+        <article class="account-panel metric-card">
+          <strong>${value}</strong>
+          <span>${label}</span>
+        </article>
+      `;
+    }
+
+    function orderCard(order) {
+      return `
+        <article class="order-card">
+          <div class="order-head">
+            <div>
+              <h4>${order.id}</h4>
+              <div class="order-meta">Placed on ${order.date}</div>
+            </div>
+            <span class="status-pill ${order.statusClass}">${order.status}</span>
+          </div>
+          <div class="divider"></div>
+          <div class="row-between">
+            <div>
+              <div>${order.items}</div>
+              <div class="order-meta">${order.eta}</div>
+            </div>
+            <strong>${order.total}</strong>
+          </div>
+        </article>
+      `;
+    }
+
+    function addressCard(address) {
+      return `
+        <article class="address-card">
+          <h4>${address.label}</h4>
+          <p>${address.lines.join("<br />")}</p>
+        </article>
+      `;
+    }
+
+    function savedItemCard(item) {
+      return `
+        <article class="recommend-card">
+          <div class="row-between">
+            <div>
+              <h4>${item.name}</h4>
+              <p class="inline-note">Ready to move back into your bag</p>
+            </div>
+            <strong>${item.price}</strong>
+          </div>
+        </article>
+      `;
+    }
+
+    async function loadAccount() {
+      const response = await fetch("/api/account-overview");
+      if (!response.ok) {
+        throw new Error("Unable to fetch account details.");
+      }
+
+      const data = await response.json();
+
+      document.getElementById("member-name").textContent = data.profile.fullName;
+      document.getElementById("member-meta").textContent = `${data.profile.membership} • Joined ${data.profile.joined}`;
+      document.getElementById("avatar").textContent = data.profile.initials;
+
+      document.getElementById("metrics").innerHTML = [
+        metricCard(data.stats.activeOrders, "Active orders"),
+        metricCard(data.stats.savedItems, "Saved items"),
+        metricCard(data.stats.loyaltyPoints, "Reward points"),
+        metricCard(data.stats.rewardsTier, "Membership tier")
+      ].join("");
+
+      document.getElementById("orders").innerHTML = data.orders.map(orderCard).join("");
+      document.getElementById("addresses").innerHTML = data.addresses.map(addressCard).join("");
+      document.getElementById("saved-items").innerHTML = data.savedItems.map(savedItemCard).join("");
+
+      document.getElementById("profile-card").innerHTML = `
+        <h4>${data.profile.fullName}</h4>
+        <p>${data.profile.email}</p>
+        <div class="divider"></div>
+        <p><strong>Membership:</strong> ${data.profile.membership}</p>
+        <p><strong>Joined:</strong> ${data.profile.joined}</p>
+      `;
+    }
+
+    logoutButton.addEventListener("click", async () => {
+      await fetch("/logout", { method: "POST" });
+      window.location.href = "/";
+    });
+
+    loadAccount().catch(() => {
+      document.querySelector(".account-grid").innerHTML =
+        '<div class="alert error">We could not load your account right now. Please refresh the page.</div>';
+      document.getElementById("member-name").textContent = "Account unavailable";
+      document.getElementById("member-meta").textContent = "Please try again shortly.";
+    });
+  </script>
+</body>
+</html>

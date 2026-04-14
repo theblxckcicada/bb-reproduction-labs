@@ -1,40 +1,103 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
-    <title>Loader</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DOM XSS Demo Loader</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 520px;
+        margin: 0 auto;
+        background: #f8f9fb;
+        color: #222;
+      }
+      .container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+      }
+      .panel {
+        width: 100%;
+        background: #fff;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+      }
+      .spinner {
+        width: 70px;
+        height: 70px;
+        border: 6px solid #ddd;
+        border-top-color: #111;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 1rem auto 1.5rem;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .row {
+        margin: 0.7rem 0;
+      }
+      label {
+        display: block;
+        margin-bottom: 0.35rem;
+        font-weight: 600;
+      }
+      input {
+        width: 100%;
+        padding: 0.75rem;
+        box-sizing: border-box;
+      }
+      .meta {
+        margin-top: 1rem;
+        background: #f4f4f6;
+        border-radius: 10px;
+        padding: 1rem;
+        white-space: pre-wrap;
+      }
+    </style>
   </head>
   <body>
-    <h2>Tracking pixel loader</h2>
-    <div id="displayOriginContainer"></div>
-    <div id="redirectMessage"></div>
+    <div class="container">
+      <div class="card">
+        <div class="spinner"></div>
+        <h2>Redirecting...</h2>
+
+        <p id="redirect-message"></p>
+        <p id="redirect-destination"></p>
+      </div>
+    </div>
+
     <script>
-      const urlParams = new URLSearchParams(location.search);
-      let utm_source = urlParams.get("utm_source") || "";
-      window.utm_source = utm_source;
+      const params = new URLSearchParams(window.location.search);
 
-      // DOM XSS via displayOrigin
-      const displayOrigin = urlParams.get("displayOrigin");
-      if (displayOrigin) {
-        document.getElementById("displayOriginContainer").innerHTML =
-          displayOrigin;
-      }
+      const origin = params.get("origin") || "/";
+      const displayOrigin = params.get("displayOrigin") || origin;
+      const timeoutDuration = parseInt(
+        params.get("timeoutDuration") || "3000",
+        10,
+      );
 
-      // Open redirect
-      const origin = urlParams.get("origin");
-      const timeout = parseInt(urlParams.get("timeoutDuration")) || 0;
-      if (origin) {
-        document.getElementById("redirectMessage").innerText =
-          `Redirecting to ${origin} in ${timeout}ms`;
-        setTimeout(() => {
-          let redirectUrl = origin;
-          const encodedUtm = encodeURIComponent(window.utm_source || "");
-          if (encodedUtm)
-            redirectUrl +=
-              (redirectUrl.includes("?") ? "&" : "?") +
-              `utm_source=${encodedUtm}`;
-          location.href = redirectUrl;
-        }, timeout);
-      }
+      var utm_source = "localhost:3000";
+
+      // Intentionally vulnerable for demo purposes:
+      document.getElementById("redirect-message").innerHTML =
+        `You are being redirected to <strong>${displayOrigin}</strong>.`;
+
+      document.getElementById("redirect-destination").innerHTML =
+        `Destination: ${origin}`;
+
+      setTimeout(
+        () => {
+          window.location.href = origin + "?utm_source=" + utm_source;
+        },
+        Number.isNaN(timeoutDuration) ? 3000 : timeoutDuration,
+      );
     </script>
   </body>
 </html>
