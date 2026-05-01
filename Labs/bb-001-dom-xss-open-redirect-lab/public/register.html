@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create account | Northstar Store</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <main class="auth-layout site-shell">
+    <section class="auth-card">
+      <a href="/" class="inline-note">← Back to store</a>
+      <h2>Create your account</h2>
+      <p>Start your session and unlock order tracking, saved items, and member rewards.</p>
+
+      <form id="register-form" class="form-grid">
+        <label>
+          <span>Username</span>
+          <input name="username" placeholder="Choose a username" required />
+        </label>
+        <label>
+          <span>Password</span>
+          <input name="password" type="password" placeholder="Choose a password" required />
+        </label>
+        <button class="primary" type="submit">Create account</button>
+      </form>
+
+      <div class="helper-row">
+        <span class="inline-note">Already a member?</span>
+        <a href="/login.html">Sign in</a>
+      </div>
+
+      <div id="message"></div>
+    </section>
+
+    <aside class="auth-side hero-card">
+      <h2>What opens up after registration</h2>
+      <p>New members get an elevated account view with order history, rewards, saved items, and account shortcuts.</p>
+      <div class="feature-list">
+        <div class="feature-item">
+          <strong>Fast onboarding</strong>
+          <span class="inline-note">Create an account and start an authenticated session immediately.</span>
+        </div>
+        <div class="feature-item">
+          <strong>Clean dashboard</strong>
+          <span class="inline-note">A structured account page instead of a raw JSON session response.</span>
+        </div>
+        <div class="feature-item">
+          <strong>Store-ready styling</strong>
+          <span class="inline-note">Realistic branding and upgraded visual polish across every page.</span>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <script>
+    const form = document.getElementById("register-form");
+    const message = document.getElementById("message");
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      message.innerHTML = "";
+
+      const payload = Object.fromEntries(new FormData(form).entries());
+      const response = await fetch("/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const result = await response.json();
+
+      if (!response.ok) {
+        message.innerHTML = `<div class="alert error">${result.error || "Unable to create the account."}</div>`;
+        return;
+      }
+
+      message.innerHTML = '<div class="alert success">Your account is ready. Redirecting...</div>';
+      window.location.href = "/account";
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Northstar Store</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="topbar">
+    <div class="site-shell nav">
+      <a class="brand" href="/">
+        <div class="brand-mark"></div>
+        <div class="brand-text">
+          <h1>Northstar Store</h1>
+          <p>Performance essentials for modern everyday carry</p>
+        </div>
+      </a>
+      <nav class="nav-links">
+        <a href="/login.html">Sign in</a>
+        <a href="/register.html">Create account</a>
+        <a href="/account">Account</a>
+        <a class="cta" href="/loader">Continue</a>
+      </nav>
+    </div>
+  </div>
+
+  <main class="site-shell">
+    <section class="hero">
+      <div class="hero-card hero-copy">
+        <div class="eyebrow">Curated arrivals • Member account • Fast checkout flow</div>
+        <h2>Elevated gear, refined fit, and a storefront that feels finished.</h2>
+        <p>
+          Discover lightweight footwear, travel essentials, premium layers, and audio built for everyday routines.
+          Northstar brings together clean product presentation, polished account flows, and a premium brand feel.
+        </p>
+        <div class="hero-actions">
+          <a class="button primary" href="/register.html">Join Northstar</a>
+          <a class="button secondary" href="/login.html">Access your account</a>
+        </div>
+      </div>
+
+      <div class="hero-card hero-preview">
+        <div class="metric-grid">
+          <div class="metric">
+            <strong>4</strong>
+            <span>Featured categories</span>
+          </div>
+          <div class="metric">
+            <strong>24h</strong>
+            <span>Order processing cycle</span>
+          </div>
+          <div class="metric">
+            <strong>2.4k</strong>
+            <span>Member reward points</span>
+          </div>
+          <div class="metric">
+            <strong>98%</strong>
+            <span>Returning customer satisfaction</span>
+          </div>
+        </div>
+        <div class="panel">
+          <strong>Why customers come back</strong>
+          <p class="inline-note">
+            Clean design, fast account access, secure session-backed authentication, and a streamlined path from product discovery to account management.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <div>
+          <h3>Latest arrivals</h3>
+          <p>Hand-picked products rendered from the backend catalogue.</p>
+        </div>
+        <div class="badge-row">
+          <span class="badge">Free local delivery over $120</span>
+          <span class="badge">Members earn points on every order</span>
+        </div>
+      </div>
+      <div id="products" class="products-grid"></div>
+    </section>
+
+    <section class="grid-3">
+      <article class="info-card">
+        <strong>Members first</strong>
+        <p>Track orders, manage addresses, and keep your most-used essentials within easy reach.</p>
+      </article>
+      <article class="info-card">
+        <strong>Premium presentation</strong>
+        <p>Every page has been refined to feel like a real retail storefront instead of a starter template.</p>
+      </article>
+      <article class="info-card">
+        <strong>Session-backed access</strong>
+        <p>The authenticated customer experience is managed with the <strong>auth-token</strong> session key.</p>
+      </article>
+    </section>
+
+    <p class="footer-note">Northstar Store • Crafted for polished local development previews.</p>
+  </main>
+
+  <script>
+    async function loadProducts() {
+      const container = document.getElementById("products");
+      container.innerHTML = '<div class="panel">Loading the latest arrivals...</div>';
+
+      const response = await fetch("/api/products");
+      const products = await response.json();
+
+      container.innerHTML = products.map(product => `
+        <article class="product-card">
+          <div class="product-media">${product.emoji}</div>
+          <div class="product-copy">
+            <div class="product-label">${product.category}</div>
+            <h4 class="product-title">${product.name}</h4>
+            <p class="product-desc">${product.description}</p>
+            <div class="product-footer">
+              <span class="price">$${product.price.toFixed(2)}</span>
+              <button class="primary" type="button">Add to bag</button>
+            </div>
+          </div>
+        </article>
+      `).join("");
+    }
+
+    loadProducts().catch(() => {
+      document.getElementById("products").innerHTML =
+        '<div class="alert error">The catalogue is currently unavailable.</div>';
+    });
+  </script>
+</body>
+</html>

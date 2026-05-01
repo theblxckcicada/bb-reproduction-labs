@@ -1,0 +1,13 @@
+{
+  "name": "northstar-store",
+  "version": "1.0.0",
+  "description": "Polished local storefront with session auth and a branded account experience",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "express-session": "^1.18.1"
+  }
+}
