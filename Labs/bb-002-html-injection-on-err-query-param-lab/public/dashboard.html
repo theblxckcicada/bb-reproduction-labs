@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Dashboard | CloudDesk</title>
+  <link rel="stylesheet" href="/assets/styles.css" />
+</head>
+<body class="app-body">
+  <aside class="sidebar">
+    <a class="brand sidebar-brand" href="/dashboard">
+      <span class="brand-mark">C</span>
+      <span>CloudDesk</span>
+    </a>
+
+    <nav class="side-nav">
+      <a class="active" href="/dashboard">Overview</a>
+      <a href="/requests">Requests</a>
+      <a href="/teams">Teams</a>
+      <a href="/reports">Reports</a>
+      <a href="/settings">Settings</a>
+    </nav>
+  </aside>
+
+  <main class="workspace">
+    <header class="workspace-header">
+      <div>
+        <p class="eyebrow">Overview</p>
+        <h1>Good afternoon, Admin</h1>
+      </div>
+      <a class="profile-pill" href="/signin">Sign out</a>
+    </header>
+
+    <section class="stats-grid">
+      <article class="stat-card">
+        <span>Open requests</span>
+        <strong>18</strong>
+        <p>4 require manager approval</p>
+      </article>
+      <article class="stat-card">
+        <span>SLA health</span>
+        <strong>96%</strong>
+        <p>Across active queues</p>
+      </article>
+      <article class="stat-card">
+        <span>Team members</span>
+        <strong>42</strong>
+        <p>8 online right now</p>
+      </article>
+    </section>
+
+    <section class="content-grid">
+      <article class="panel-card large">
+        <div class="panel-title">
+          <h2>Recent activity</h2>
+          <a href="/requests">View all</a>
+        </div>
+
+        <div class="activity-list">
+          <div><span class="dot success"></span><p><strong>Finance request approved</strong><small>2 minutes ago</small></p></div>
+          <div><span class="dot"></span><p><strong>New access request created</strong><small>18 minutes ago</small></p></div>
+          <div><span class="dot warning"></span><p><strong>Support queue nearing SLA</strong><small>43 minutes ago</small></p></div>
+          <div><span class="dot success"></span><p><strong>Onboarding checklist completed</strong><small>1 hour ago</small></p></div>
+        </div>
+      </article>
+
+      <article class="panel-card">
+        <h2>Workspace health</h2>
+        <div class="health-ring">96%</div>
+        <p class="muted">Most workflows are operating within normal thresholds.</p>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

@@ -10,19 +10,29 @@
   <main class="auth-layout site-shell">
     <section class="auth-card">
       <a href="/" class="inline-note">← Back to store</a>
-      <h2>Welcome back</h2>
-      <p>Sign in to view orders, saved addresses, and your Northstar membership benefits.</p>
+      <div class="auth-heading">
+        <span class="section-kicker">Customer access</span>
+        <h2>Welcome back</h2>
+        <p>Sign in to check your orders, saved addresses, reward balance and saved items.</p>
+      </div>
 
       <form id="login-form" class="form-grid">
         <label>
           <span>Username</span>
-          <input name="username" placeholder="Enter username" required />
+          <input name="username" placeholder="e.g. sam.north" autocomplete="username" required />
         </label>
         <label>
           <span>Password</span>
-          <input name="password" type="password" placeholder="Enter password" required />
+          <input name="password" type="password" placeholder="Enter your password" autocomplete="current-password" required />
         </label>
-        <button class="primary" type="submit">Sign in</button>
+        <label class="checkbox-row">
+          <input name="rememberMe" type="checkbox" value="true" checked />
+          <span>
+            Keep me signed in
+            <small>Remember this browser for 30 days unless I sign out.</small>
+          </span>
+        </label>
+        <button class="primary full-button" type="submit">Sign in</button>
       </form>
 
       <div class="helper-row">
@@ -33,21 +43,29 @@
       <div id="message"></div>
     </section>
 
-    <aside class="auth-side hero-card">
-      <h2>Built for a premium customer experience</h2>
-      <p>Every screen has been rebuilt to feel like a polished retail application with strong visual hierarchy and clean flows.</p>
-      <div class="feature-list">
-        <div class="feature-item">
-          <strong>Order visibility</strong>
-          <span class="inline-note">Recent purchases, delivery status, and quick actions in one place.</span>
+    <aside class="auth-side">
+      <div class="auth-visual-card">
+        <div class="brand-mini">
+          <span class="brand-mark small">N</span>
+          <strong>Northstar member desk</strong>
         </div>
-        <div class="feature-item">
-          <strong>Saved preferences</strong>
-          <span class="inline-note">Addresses, saved items, and membership details ready when you sign in.</span>
+        <h2>Your buying history, addresses and rewards in one place.</h2>
+        <div class="receipt-card">
+          <div>
+            <span>Current order</span>
+            <strong>#NS-1048</strong>
+          </div>
+          <span class="status-pill status-shipped">Shipped</span>
         </div>
-        <div class="feature-item">
-          <strong>Session-backed access</strong>
-          <span class="inline-note">A simple Express session flow powered by the <strong>auth-token</strong> cookie.</span>
+        <div class="feature-list compact-list">
+          <div class="feature-item">
+            <strong>Order visibility</strong>
+            <span class="inline-note">Recent purchases, delivery status and totals without digging through email.</span>
+          </div>
+          <div class="feature-item">
+            <strong>Saved preferences</strong>
+            <span class="inline-note">Keep frequent addresses and saved products ready for faster checkout.</span>
+          </div>
         </div>
       </div>
     </aside>
@@ -56,6 +74,23 @@
   <script>
     const form = document.getElementById("login-form");
     const message = document.getElementById("message");
+
+    async function redirectIfAlreadySignedIn() {
+      try {
+        const response = await fetch("/api/session");
+        if (!response.ok) return;
+
+        const session = await response.json();
+        if (session.authenticated) {
+          message.innerHTML = '<div class="alert success">You are already signed in. Opening your account...</div>';
+          window.location.href = "/account";
+        }
+      } catch {
+        // Keep the form available if the session check fails.
+      }
+    }
+
+    redirectIfAlreadySignedIn();
 
     form.addEventListener("submit", async (event) => {
       event.preventDefault();

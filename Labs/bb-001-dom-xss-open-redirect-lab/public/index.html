@@ -1,133 +1,194 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Northstar Store</title>
-  <link rel="stylesheet" href="/styles.css" />
-</head>
-<body>
-  <div class="topbar">
-    <div class="site-shell nav">
-      <a class="brand" href="/">
-        <div class="brand-mark"></div>
-        <div class="brand-text">
-          <h1>Northstar Store</h1>
-          <p>Performance essentials for modern everyday carry</p>
-        </div>
-      </a>
-      <nav class="nav-links">
-        <a href="/login.html">Sign in</a>
-        <a href="/register.html">Create account</a>
-        <a href="/account">Account</a>
-        <a class="cta" href="/loader">Continue</a>
-      </nav>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Northstar Store | Everyday carry, travel gear and apparel</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="announcement-bar">
+      <span>Free local delivery over R120</span>
+      <span>Same-day processing before 14:00</span>
+      <span>Member rewards on every order</span>
     </div>
-  </div>
 
-  <main class="site-shell">
-    <section class="hero">
-      <div class="hero-card hero-copy">
-        <div class="eyebrow">Curated arrivals • Member account • Fast checkout flow</div>
-        <h2>Elevated gear, refined fit, and a storefront that feels finished.</h2>
-        <p>
-          Discover lightweight footwear, travel essentials, premium layers, and audio built for everyday routines.
-          Northstar brings together clean product presentation, polished account flows, and a premium brand feel.
-        </p>
-        <div class="hero-actions">
-          <a class="button primary" href="/register.html">Join Northstar</a>
-          <a class="button secondary" href="/login.html">Access your account</a>
-        </div>
+    <header class="topbar">
+      <div class="site-shell nav">
+        <a class="brand" href="/" aria-label="Northstar Store home">
+          <div class="brand-mark" aria-hidden="true">N</div>
+          <div class="brand-text">
+            <h1>Northstar Store</h1>
+            <p>Everyday carry, travel gear and clean essentials</p>
+          </div>
+        </a>
+        <nav class="nav-links" aria-label="Primary navigation">
+          <a href="#products">New arrivals</a>
+          <a id="nav-sign-in" href="/login.html">Sign in</a>
+          <a id="nav-register" href="/register.html">Create account</a>
+          <a id="nav-account" class="session-pill" href="/account" hidden
+            >My account</a
+          >
+        </nav>
       </div>
+    </header>
 
-      <div class="hero-card hero-preview">
-        <div class="metric-grid">
-          <div class="metric">
-            <strong>4</strong>
-            <span>Featured categories</span>
-          </div>
-          <div class="metric">
-            <strong>24h</strong>
-            <span>Order processing cycle</span>
-          </div>
-          <div class="metric">
-            <strong>2.4k</strong>
-            <span>Member reward points</span>
-          </div>
-          <div class="metric">
-            <strong>98%</strong>
-            <span>Returning customer satisfaction</span>
-          </div>
-        </div>
-        <div class="panel">
-          <strong>Why customers come back</strong>
-          <p class="inline-note">
-            Clean design, fast account access, secure session-backed authentication, and a streamlined path from product discovery to account management.
+    <main>
+      <section class="site-shell hero">
+        <div class="hero-copy">
+          <div class="eyebrow"><span></span> Spring edit now live</div>
+          <h3>
+            Built for the commute, the weekend bag, and everything between.
+          </h3>
+          <p>
+            Shop practical footwear, packable layers, travel accessories and
+            audio essentials selected for people who move often and buy with
+            intention.
           </p>
+          <div class="hero-actions">
+            <a class="button primary" href="/register.html">Start shopping</a>
+            <a class="button secondary" href="/login.html">View my account</a>
+          </div>
+          <div class="hero-proof">
+            <div>
+              <strong>4.8/5</strong><span>Average customer rating</span>
+            </div>
+            <div><strong>18k+</strong><span>Orders fulfilled</span></div>
+            <div><strong>24h</strong><span>Order processing</span></div>
+          </div>
         </div>
-      </div>
-    </section>
 
-    <section>
-      <div class="section-head">
-        <div>
-          <h3>Latest arrivals</h3>
-          <p>Hand-picked products rendered from the backend catalogue.</p>
+        <aside class="hero-showcase" aria-label="Featured product collection">
+          <div class="showcase-card showcase-large">
+            <span class="product-tag">New season</span>
+            <div class="showcase-object bag"></div>
+            <div>
+              <strong>Transit Pack 24L</strong>
+              <p>Weather-resistant daily carry with organised storage.</p>
+            </div>
+          </div>
+          <div class="showcase-row">
+            <div class="showcase-card">
+              <div class="showcase-object shoe"></div>
+              <strong>Cloud Runner</strong>
+              <span>Lightweight footwear</span>
+            </div>
+            <div class="accent-card showcase-card">
+              <strong>Member drop</strong>
+              <p>
+                Early access, saved carts, reward points and faster checkout.
+              </p>
+            </div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="section-block site-shell" id="products">
+        <div class="section-head">
+          <div>
+            <span class="section-kicker">Catalogue</span>
+            <h3>Latest arrivals</h3>
+            <p>Fresh stock pulled from the backend catalogue.</p>
+          </div>
+          <div class="badge-row">
+            <span class="badge">Secure checkout flow</span>
+            <span class="badge">30-day returns</span>
+          </div>
         </div>
-        <div class="badge-row">
-          <span class="badge">Free local delivery over $120</span>
-          <span class="badge">Members earn points on every order</span>
-        </div>
-      </div>
-      <div id="products" class="products-grid"></div>
-    </section>
+        <div id="products-list" class="products-grid"></div>
+      </section>
 
-    <section class="grid-3">
-      <article class="info-card">
-        <strong>Members first</strong>
-        <p>Track orders, manage addresses, and keep your most-used essentials within easy reach.</p>
-      </article>
-      <article class="info-card">
-        <strong>Premium presentation</strong>
-        <p>Every page has been refined to feel like a real retail storefront instead of a starter template.</p>
-      </article>
-      <article class="info-card">
-        <strong>Session-backed access</strong>
-        <p>The authenticated customer experience is managed with the <strong>auth-token</strong> session key.</p>
-      </article>
-    </section>
+      <section class="editorial-grid site-shell">
+        <article class="info-card wide-card">
+          <span class="section-kicker">Why Northstar</span>
+          <strong>Gear that does not scream for attention.</strong>
+          <p>
+            Neutral colours, durable materials, simple silhouettes and practical
+            details for everyday use.
+          </p>
+        </article>
+        <article class="info-card">
+          <strong>Fast account access</strong>
+          <p>
+            Saved addresses, order status and member benefits are available as
+            soon as you sign in.
+          </p>
+        </article>
+        <article class="info-card">
+          <strong>Reliable delivery updates</strong>
+          <p>
+            Track processing, shipped and delivered orders from a focused
+            customer dashboard.
+          </p>
+        </article>
+      </section>
 
-    <p class="footer-note">Northstar Store • Crafted for polished local development previews.</p>
-  </main>
+      <footer class="footer-note site-shell">
+        <span>Northstar Store</span>
+        <span>Practical goods for daily movement.</span>
+      </footer>
+    </main>
 
-  <script>
-    async function loadProducts() {
-      const container = document.getElementById("products");
-      container.innerHTML = '<div class="panel">Loading the latest arrivals...</div>';
+    <script>
+      async function hydrateSessionNav() {
+        try {
+          const response = await fetch("/api/session");
+          if (!response.ok) return;
 
-      const response = await fetch("/api/products");
-      const products = await response.json();
+          const session = await response.json();
+          if (!session.authenticated) return;
 
-      container.innerHTML = products.map(product => `
+          document.getElementById("nav-sign-in")?.setAttribute("hidden", "");
+          document.getElementById("nav-register")?.setAttribute("hidden", "");
+
+          const accountLink = document.getElementById("nav-account");
+          if (accountLink) {
+            accountLink.hidden = false;
+            accountLink.textContent = `Hi, ${session.user.username}`;
+          }
+        } catch {
+          // Navigation remains usable even if the session endpoint is unavailable.
+        }
+      }
+
+      async function loadProducts() {
+        const container = document.getElementById("products-list");
+        container.innerHTML =
+          '<div class="panel loading-panel">Loading latest arrivals...</div>';
+
+        const response = await fetch("/api/products");
+        const products = await response.json();
+
+        container.innerHTML = products
+          .map(
+            (product, index) => `
         <article class="product-card">
-          <div class="product-media">${product.emoji}</div>
+          <div class="product-media">
+            <span class="media-glow"></span>
+            <span class="product-emoji">${product.emoji}</span>
+            <span class="stock-pill">${index % 2 === 0 ? "In stock" : "Limited"}</span>
+          </div>
           <div class="product-copy">
             <div class="product-label">${product.category}</div>
             <h4 class="product-title">${product.name}</h4>
             <p class="product-desc">${product.description}</p>
             <div class="product-footer">
-              <span class="price">$${product.price.toFixed(2)}</span>
+              <span class="price">R${product.price.toFixed(2)}</span>
               <button class="primary" type="button">Add to bag</button>
             </div>
           </div>
         </article>
-      `).join("");
-    }
+      `,
+          )
+          .join("");
+      }
 
-    loadProducts().catch(() => {
-      document.getElementById("products").innerHTML =
-        '<div class="alert error">The catalogue is currently unavailable.</div>';
-    });
-  </script>
-</body>
+      hydrateSessionNav();
+
+      loadProducts().catch(() => {
+        document.getElementById("products-list").innerHTML =
+          '<div class="alert error">The catalogue is currently unavailable. Please refresh shortly.</div>';
+      });
+    </script>
+  </body>
 </html>

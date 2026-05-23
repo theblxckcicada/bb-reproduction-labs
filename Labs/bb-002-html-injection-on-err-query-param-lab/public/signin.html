@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sign in | CloudDesk</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="/assets/styles.css" />
+</head>
+<body>
+  <main class="auth-layout">
+    <section class="auth-art">
+      <nav class="brand-row">
+        <a class="brand" href="/signin" aria-label="CloudDesk home">
+          <span class="brand-mark">C</span>
+          <span>CloudDesk</span>
+        </a>
+        <a class="nav-link" href="/status">System status</a>
+      </nav>
+
+      <div class="hero-copy">
+        <p class="eyebrow">Workspace operations</p>
+        <h1>Manage teams, requests, and internal workflows from one clean portal.</h1>
+        <p>
+          CloudDesk helps small teams keep support, approvals, and service
+          activity organized without adding unnecessary process.
+        </p>
+      </div>
+
+      <div class="insight-card">
+        <div>
+          <span class="mini-label">Today</span>
+          <strong>24 requests resolved</strong>
+        </div>
+        <div class="mini-chart" aria-hidden="true">
+          <span style="height:32%"></span>
+          <span style="height:56%"></span>
+          <span style="height:44%"></span>
+          <span style="height:78%"></span>
+          <span style="height:62%"></span>
+          <span style="height:88%"></span>
+        </div>
+      </div>
+    </section>
+
+    <section class="auth-panel">
+      <div class="auth-card">
+        <div class="mobile-brand">
+          <span class="brand-mark">C</span>
+          <span>CloudDesk</span>
+        </div>
+
+        <div class="auth-heading">
+          <p class="eyebrow">Welcome back</p>
+          <h2>Sign in to your workspace</h2>
+          <p>Use your workspace account to continue.</p>
+        </div>
+
+        <div id="messageBox" class="message-box" hidden></div>
+
+        <form class="form" method="post" action="/signin" autocomplete="off">
+          <label for="email">Email address</label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            inputmode="email"
+            placeholder="name@company.com"
+            required>
+
+          <div class="label-row">
+            <label for="password">Password</label>
+            <a href="/forgot-password">Forgot password?</a>
+          </div>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            placeholder="Enter your password"
+            required>
+
+          <button type="submit">Sign in</button>
+        </form>
+
+        <div class="divider"><span>or</span></div>
+
+        <button class="secondary-btn" type="button">Continue with SSO</button>
+
+        <p class="signup-note">
+          New to CloudDesk?
+          <a href="/request-access">Request access</a>
+        </p>
+
+        <p class="demo-note">
+          Demo account: <code>admin@clouddesk.local</code> / <code>CloudDesk#2026</code>
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <script src="/assets/app.js"></script>
+</body>
+</html>
