@@ -8,7 +8,7 @@ A polished local storefront built with Node.js, Express, and session-based authe
 - Register and sign-in flows
 - Session-based authentication using the `auth-token` session cookie key
 - Protected account dashboard with profile details, recent orders, saved addresses, and saved items
-- Loader route that displays `origin`, `displayOrigin`, and `timeoutDuration` and redirects only to local destinations
+- Loader route that displays `next`, `bannerText`, and `timeoutDuration` and redirects only to local destinations
 
 ## Run locally
 

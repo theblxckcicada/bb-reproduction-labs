@@ -1,0 +1,21 @@
+{
+  "name": "clouddesk-html-injection-lab",
+  "version": "2.0.0",
+  "description": "A local-only educational web application demonstrating unsafe login message rendering.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "web-security",
+    "html-injection",
+    "xss",
+    "training"
+  ],
+  "author": "Ovawatch Sec",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}

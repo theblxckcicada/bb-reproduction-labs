@@ -12,8 +12,9 @@
       <header class="account-panel account-header">
         <div>
           <a href="/" class="inline-note">← Back to store</a>
+          <span class="section-kicker">Member dashboard</span>
           <h2>Your account</h2>
-          <p>Manage orders, addresses, saved items, and membership benefits.</p>
+          <p>Orders, addresses, saved products and rewards — organised for quick decisions.</p>
         </div>
         <div id="profile-chip" class="profile-chip">
           <div id="avatar" class="avatar">NS</div>
@@ -29,13 +30,12 @@
       <section class="account-grid">
         <div class="stack">
           <article class="account-panel">
-            <div class="row-between">
+            <div class="row-between section-toolbar">
               <div>
                 <h3>Recent orders</h3>
-                <p class="inline-note">Keep track of the latest purchases and delivery milestones.</p>
+                <p class="inline-note">Track purchases, fulfilment status and delivery milestones.</p>
               </div>
               <div class="toolbar">
-                <a class="link-button" href="/loader">Open loader</a>
                 <button id="logout-button" class="primary" type="button">Sign out</button>
               </div>
             </div>
@@ -43,14 +43,19 @@
           </article>
 
           <article class="account-panel">
-            <h3>Saved for later</h3>
-            <p class="inline-note">Items you've kept within easy reach for your next order.</p>
+            <div class="row-between section-toolbar">
+              <div>
+                <h3>Saved for later</h3>
+                <p class="inline-note">Products kept close for your next order.</p>
+              </div>
+              <span class="badge">Ready to add</span>
+            </div>
             <div id="saved-items" class="recommend-list"></div>
           </article>
         </div>
 
         <div class="stack">
-          <article class="account-panel">
+          <article class="account-panel profile-panel">
             <h3>Profile</h3>
             <div id="profile-card" class="profile-card"></div>
           </article>
@@ -60,8 +65,11 @@
             <div id="addresses" class="address-list"></div>
           </article>
 
-          <article class="account-panel">
-            <h3>Quick overview</h3>
+          <article class="account-panel support-panel">
+            <div>
+              <span class="section-kicker">Customer care</span>
+              <h3>Quick overview</h3>
+            </div>
             <ul class="mini-list">
               <li><span>Support line</span><strong>Available 24/7</strong></li>
               <li><span>Next rewards review</span><strong>End of month</strong></li>
@@ -122,7 +130,7 @@
           <div class="row-between">
             <div>
               <h4>${item.name}</h4>
-              <p class="inline-note">Ready to move back into your bag</p>
+              <p class="inline-note">Saved in your member list</p>
             </div>
             <strong>${item.price}</strong>
           </div>
