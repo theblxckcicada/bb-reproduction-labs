@@ -1,0 +1,49 @@
+{
+  "$schema": "../../platform/schema/lab.schema.json",
+  "id": "bb-001-dom-xss-open-redirect",
+  "title": "DOM XSS via Open Redirect",
+  "summary": "A polished storefront's post-login loader trusts user-controlled query parameters and writes them straight into the DOM — chain an open redirect into DOM-based XSS.",
+  "difficulty": "medium",
+  "categories": [
+    "XSS",
+    "Open Redirect"
+  ],
+  "tags": [
+    "client-side",
+    "dom",
+    "innerHTML"
+  ],
+  "vulnType": "DOM-based XSS (chained from an open redirect)",
+  "estimatedMinutes": 30,
+  "author": "Ovawatch Sec",
+  "runtime": {
+    "type": "node",
+    "start": "npm start",
+    "readyPath": "/",
+    "defaultPort": 3000
+  },
+  "brief": "**Northstar Store** is a session-authenticated storefront. After certain actions it sends the browser through a `/loader` page that takes three query parameters — `next`, `bannerText`, and `timeoutDuration` — and uses them to show a friendly \"redirecting\" message before forwarding the user on.\n\nThe loader's client-side script reads those parameters and renders them **without sanitization**. Your job is to find the sink and prove both an open redirect and DOM-based XSS.\n\n> Local, intentionally-vulnerable app. Use it only on your own machine.",
+  "objectives": [
+    "Locate the loader page and identify which query parameters it consumes.",
+    "Find the DOM sink where untrusted input reaches the page.",
+    "Prove an open redirect to an external origin.",
+    "Escalate to DOM-based XSS that executes in the lab's origin.",
+    "Describe the root cause and a correct fix."
+  ],
+  "hints": [
+    {
+      "text": "Open the lab, then browse to /loader and watch what it does with the URL's query string."
+    },
+    {
+      "text": "View source on /loader. The inline script assigns to element.innerHTML using values taken directly from URLSearchParams."
+    },
+    {
+      "text": "bannerText is interpolated into innerHTML. HTML that triggers a load error event will run script without needing a <script> tag."
+    },
+    {
+      "text": "next controls window.location.href — point it at an external origin to demonstrate the open redirect."
+    }
+  ],
+  "solution": "## Root cause\n\n`public/loader.html` reads `next`, `bannerText`, and `timeoutDuration` from the query string and assigns them into the DOM via `innerHTML`, then sets `window.location.href = next`.\n\n```js\nconst next = params.get('next') || '/';\nconst bannerText = params.get('bannerText') || next;\ndocument.getElementById('redirect-message').innerHTML =\n  `You are being redirected to <strong>${bannerText}</strong>.`;\nwindow.location.href = next + '?utm_source=' + utm_source;\n```\n\n## Open redirect\n\n```text\n/loader?next=https://example.org\n```\n\nAfter the timeout the browser is sent to the attacker-chosen origin.\n\n## DOM-based XSS\n\n`bannerText` is interpolated into `innerHTML`, so a tag with an error handler executes immediately:\n\n```text\n/loader?bannerText=<img src=x onerror=alert(document.domain)>\n```\n\nA single crafted link gives an attacker script execution in the store's origin (session/cookie theft, account actions, etc.).\n\n## Fix direction\n\n- Never assign untrusted input to `innerHTML`. Use `textContent` for the message.\n- Validate `next` against an allow-list of internal paths (reject absolute URLs and schemes like `javascript:`).\n- Apply a Content-Security-Policy that forbids inline event handlers.",
+  "links": []
+}

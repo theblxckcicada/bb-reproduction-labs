@@ -1,0 +1,52 @@
+{
+  "$schema": "../../platform/schema/lab.schema.json",
+  "id": "bb-002-pre-account-takeover",
+  "title": "Pre-Account Takeover via Federated Linking",
+  "summary": "WorkNest links a Google sign-in to any pre-existing local account with the same email — letting an attacker who registered first retain access after the victim 'signs up' with Google.",
+  "difficulty": "hard",
+  "categories": [
+    "Account Takeover",
+    "Authentication",
+    "OAuth"
+  ],
+  "tags": [
+    "oauth",
+    "account-linking",
+    "identity"
+  ],
+  "vulnType": "Pre-account-takeover via unsafe federated account linking",
+  "estimatedMinutes": 40,
+  "author": "Ovawatch Sec",
+  "runtime": {
+    "type": "node",
+    "install": "npm install",
+    "start": "npm start",
+    "readyPath": "/",
+    "defaultPort": 5050,
+    "env": {
+      "GOOGLE_CLIENT_ID": "local-demo-client-id.apps.googleusercontent.com",
+      "GOOGLE_CLIENT_SECRET": "local-demo-client-secret"
+    }
+  },
+  "brief": "**WorkNest** is a small work-management app with local email/password auth and \"Continue with Google\". When a Google profile's email matches an existing local account, WorkNest silently links the two and keeps the existing local password valid.\n\nThat means an attacker can pre-register a local account using a victim's email and an attacker-chosen password. Later, when the victim signs in with Google for the first time, their workspace is attached to the account the attacker still controls.\n\n> The platform sets placeholder Google credentials so the app boots. To exercise the actual Google sign-in step you must configure a real OAuth client — see the lab's own README (`Google OAuth setup`). Reset demo data with `npm run reset` in the lab folder.",
+  "objectives": [
+    "Register a local account using a target email address and an attacker-chosen password.",
+    "Have the victim sign in with Google using the same email and create workspace data.",
+    "Sign back in with the attacker's password and confirm access to the victim's workspace.",
+    "Identify the account-linking logic responsible.",
+    "Propose a safe account-linking design."
+  ],
+  "hints": [
+    {
+      "text": "Think about the order of events: who creates the account first, and what the app trusts when a Google login arrives."
+    },
+    {
+      "text": "The flaw is email equality. A federated identity is linked to an existing local account purely because the email matches."
+    },
+    {
+      "text": "The linking logic lives in src/auth.js — look at what happens when a Google profile's email already exists locally."
+    }
+  ],
+  "solution": "## Root cause\n\nIn `src/auth.js`, when a Google profile returns an email already present in the local database, WorkNest links the existing account to Google **by email alone** and leaves the original local password valid. Email equality is treated as proof of ownership.\n\n## Exploit flow\n\n1. Reset the app (`npm run reset`) and start it.\n2. **Attacker:** register locally with the victim's email and a password you choose.\n3. Sign out.\n4. **Victim:** click *Continue with Google* and authenticate with the same email; create a project/task.\n5. Sign out.\n6. **Attacker:** sign in with the victim's email and the password from step 2 — you now see the workspace data the victim created after their Google sign-in.\n\n## Fix direction\n\n- Require the existing local password (or an emailed verification link) before linking Google to a pre-existing local account.\n- On federated verification of an existing account, invalidate the local password until the legitimate user resets it.\n- Notify the user when a new sign-in method is added, and enforce an explicit account-linking state machine instead of ad-hoc email merging.",
+  "links": []
+}

@@ -1,0 +1,168 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://Ovawatch.local/schema/lab.schema.json",
+  "title": "Ovawatch Lab Manifest",
+  "description": "Optional metadata for a bug-bounty reproduction lab. Place this file as `lab.json` in the lab's root folder. Every field is optional; the platform infers sensible defaults from package.json and README.md when fields are missing.",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Stable unique identifier. Defaults to the folder name.",
+      "pattern": "^[a-z0-9][a-z0-9-]*$"
+    },
+    "title": {
+      "type": "string",
+      "description": "Human-friendly lab name. Defaults to a prettified folder name."
+    },
+    "summary": {
+      "type": "string",
+      "description": "One-line blurb shown on the catalog card. Defaults to package.json description."
+    },
+    "difficulty": {
+      "type": "string",
+      "enum": [
+        "easy",
+        "medium",
+        "hard",
+        "insane"
+      ],
+      "description": "Relative difficulty. Defaults to \"medium\"."
+    },
+    "categories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Vulnerability classes / themes used for filtering, e.g. [\"XSS\", \"Open Redirect\"]."
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Free-form tags."
+    },
+    "vulnType": {
+      "type": "string",
+      "description": "Primary vulnerability type, e.g. \"DOM-based XSS\"."
+    },
+    "estimatedMinutes": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Rough time-to-solve in minutes."
+    },
+    "author": {
+      "type": "string",
+      "description": "Lab author. Defaults to package.json author."
+    },
+    "reportRef": {
+      "type": "string",
+      "description": "Optional reference to the originating finding (id or URL, sanitized)."
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "How the platform launches the lab. Inferred from package.json when omitted.",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "node"
+          ],
+          "description": "Runtime kind. Only \"node\" is supported today."
+        },
+        "install": {
+          "type": "string",
+          "description": "Install command run once when dependencies are missing. Defaults to \"npm install\"."
+        },
+        "start": {
+          "type": "string",
+          "description": "Start command. Defaults to \"npm start\" (or `node <main>`)."
+        },
+        "portEnv": {
+          "type": "string",
+          "description": "Env var the platform sets to the assigned port. Defaults to \"PORT\"."
+        },
+        "defaultPort": {
+          "type": "integer",
+          "description": "The port the lab listens on by default (documentation only; the platform assigns the real port)."
+        },
+        "readyPath": {
+          "type": "string",
+          "description": "HTTP path polled to detect readiness. Defaults to \"/\"."
+        },
+        "cwd": {
+          "type": "string",
+          "description": "Working subdirectory for the start command, relative to the lab root. Defaults to the lab root."
+        },
+        "env": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Extra non-secret environment variables passed to the lab."
+        }
+      }
+    },
+    "brief": {
+      "type": "string",
+      "description": "Markdown shown on the lab page. Defaults to the README body."
+    },
+    "objectives": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Checklist of what the learner should achieve."
+    },
+    "hints": {
+      "type": "array",
+      "description": "Progressive hints revealed one at a time.",
+      "items": {
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "text"
+            ],
+            "additionalProperties": true
+          }
+        ]
+      }
+    },
+    "solution": {
+      "type": "string",
+      "description": "Markdown walkthrough, shown only behind a spoiler gate."
+    },
+    "links": {
+      "type": "array",
+      "description": "Reference links (blog write-up, video, advisory).",
+      "items": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "required": [
+          "label",
+          "url"
+        ],
+        "additionalProperties": false
+      }
+    }
+  }
+}

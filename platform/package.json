@@ -1,0 +1,29 @@
+{
+  "name": "Ovawatch-labs-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Control plane that auto-discovers and launches bug-bounty reproduction labs (TryHackMe-style, local single-user).",
+  "main": "src/server.js",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "check": "node scripts/check.js"
+  },
+  "keywords": [
+    "security",
+    "bug-bounty",
+    "labs",
+    "training",
+    "appsec"
+  ],
+  "author": "Ovawatch Sec",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
+  }
+}

@@ -3,5 +3,10 @@
     "username": "theblxckcicada_user",
     "passwordHash": "fae4ee5710378f2aa14e4cf2f6597794cc59263b8546e550e35ec0a845239108",
     "rememberTokenHash": "8b6d82eab3a30a35411d3bfe88feffec24d0a687661e553b3bd7705e0e637021"
+  },
+  "test": {
+    "username": "test",
+    "passwordHash": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
+    "rememberTokenHash": "f593a0d5dcfa531bf7ce8161108b7ac82caa58075b892632b5cf97ee9c52e095"
   }
 }
