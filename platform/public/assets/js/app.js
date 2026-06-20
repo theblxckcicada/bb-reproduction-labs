@@ -36,16 +36,16 @@ function buildShell() {
       class: "brand",
       role: "button",
       tabindex: "0",
-      "aria-label": "OvaWatch Labs — home",
+      "aria-label": "Ovawatch Labs — home",
       onclick: () => router.navigate("/"),
       onkeydown: (e) => {
         if (e.key === "Enter") router.navigate("/");
       },
     },
     [
-      el("img", { class: "brand-mark", src: "/assets/logo.svg", alt: "", width: "28", height: "28" }),
+      el("img", { class: "brand-mark", src: "/assets/logo_transparent.png", alt: "", width: "28", height: "28" }),
       el("div", { class: "brand-lockup" }, [
-        el("div", { class: "brand-name" }, ["OvaWatch", el("span", { class: "brand-tag" }, "Labs")]),
+        el("div", { class: "brand-name" }, ["Ovawatch", el("span", { class: "brand-tag" }, "Labs")]),
         el("div", { class: "brand-sub" }, "Bug Bounty Repro Range"),
       ]),
     ]

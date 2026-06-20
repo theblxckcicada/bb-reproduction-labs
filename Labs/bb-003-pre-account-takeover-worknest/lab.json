@@ -1,6 +1,6 @@
 {
   "$schema": "../../platform/schema/lab.schema.json",
-  "id": "bb-002-pre-account-takeover",
+  "id": "bb-003-pre-account-takeover",
   "title": "Pre-Account Takeover via Federated Linking",
   "summary": "WorkNest links a Google sign-in to any pre-existing local account with the same email — letting an attacker who registered first retain access after the victim 'signs up' with Google.",
   "difficulty": "hard",

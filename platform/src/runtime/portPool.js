@@ -16,12 +16,12 @@ const logger = require("../logger").child("ports");
 const allocated = new Set();
 
 /**
- * Check whether a TCP port is free to bind on the platform's host.
+ * Whether we can bind the port on `host` ourselves.
  * @param {number} port
  * @param {string} host
  * @returns {Promise<boolean>}
  */
-function isPortFree(port, host) {
+function canBind(port, host) {
   return new Promise((resolve) => {
     const tester = net
       .createServer()
@@ -31,6 +31,53 @@ function isPortFree(port, host) {
       })
       .listen(port, host);
   });
+}
+
+/**
+ * Whether something is already accepting connections on the port. This is the
+ * decisive check: labs call `app.listen(PORT)` with no host, so they bind the
+ * unspecified address (IPv6 `::`, dual-stack). On Windows a bind probe on the
+ * IPv4 `127.0.0.1` address can still SUCCEED against such a listener, which
+ * would let us hand out an occupied port and latch the readiness check onto a
+ * *different* lab. A connect probe reaches the dual-stack listener (via the
+ * IPv4-mapped address) and reliably reports the port as busy.
+ * @param {number} port
+ * @param {string} host
+ * @returns {Promise<boolean>}
+ */
+function isListening(port, host) {
+  return new Promise((resolve) => {
+    const socket = net.connect({ port, host });
+    let settled = false;
+    const done = (busy) => {
+      if (settled) return;
+      settled = true;
+      socket.destroy();
+      resolve(busy);
+    };
+    socket.setTimeout(300);
+    socket.once("connect", () => done(true));
+    socket.once("timeout", () => done(false));
+    socket.once("error", () => done(false)); // ECONNREFUSED → nothing there
+  });
+}
+
+/**
+ * Check whether a TCP port is genuinely free: we must be able to bind it AND
+ * nothing may already be listening on it (see isListening for the Windows
+ * IPv4/IPv6 caveat that makes the bind test alone insufficient).
+ * @param {number} port
+ * @param {string} host
+ * @returns {Promise<boolean>}
+ */
+async function isPortFree(port, host) {
+  if (!(await canBind(port, host))) {
+    return false;
+  }
+  if (await isListening(port, host)) {
+    return false;
+  }
+  return true;
 }
 
 /**
