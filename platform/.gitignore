@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# Local environment
+.env
+
+# Runtime state (progress, instance bookkeeping)
+data/*.json
+!data/.gitkeep
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

@@ -1,0 +1,46 @@
+{
+  "$schema": "../../platform/schema/lab.schema.json",
+  "id": "bb-002-html-injection-error-param",
+  "title": "HTML Injection via Error Query Param",
+  "summary": "A sign-in screen reflects its `error` query parameter into the page as markup, letting an attacker inject arbitrary HTML through a crafted link.",
+  "difficulty": "easy",
+  "categories": [
+    "HTML Injection",
+    "XSS"
+  ],
+  "tags": [
+    "reflected",
+    "login",
+    "client-side"
+  ],
+  "vulnType": "Reflected HTML injection (leading to XSS)",
+  "estimatedMinutes": 20,
+  "author": "Ovawatch Sec",
+  "runtime": {
+    "type": "node",
+    "start": "npm start",
+    "readyPath": "/health",
+    "defaultPort": 3000
+  },
+  "brief": "**CloudDesk Portal** shows a friendly message on its sign-in page when a login fails. The message text is taken from the `error` query parameter and rendered into the page.\n\nBecause the value is treated as markup rather than text, an attacker can craft a sign-in link that injects arbitrary HTML — the foundation for phishing overlays and, depending on rendering, script execution.\n\n> Local, intentionally-vulnerable app. Use it only on your own machine.",
+  "objectives": [
+    "Trigger a failed sign-in and observe how the error message is shown.",
+    "Confirm the `error` query parameter is reflected into the DOM as HTML.",
+    "Inject benign HTML (e.g. a heading or styled banner) via a crafted link.",
+    "Explain how this enables phishing and where it can cross into XSS.",
+    "State the correct fix."
+  ],
+  "hints": [
+    {
+      "text": "Submit wrong credentials and look at the URL — the failure message travels in the ?error= parameter."
+    },
+    {
+      "text": "Replace the error value with HTML such as <h1>hello</h1> and reload — does it render as text or as an element?"
+    },
+    {
+      "text": "If markup renders, an image with an onerror handler is the usual next step toward script execution."
+    }
+  ],
+  "solution": "## Root cause\n\nThe sign-in view renders the `error` query parameter as HTML instead of text, so attacker-supplied markup in the link becomes part of the page.\n\n## Proof of concept\n\nInject markup with a crafted link:\n\n```text\n/signin?error=<h1>Account locked — call support</h1>\n```\n\nThe injected heading renders inside the trusted sign-in page. Escalate toward script execution with an error-handler payload:\n\n```text\n/signin?error=<img src=x onerror=alert(document.domain)>\n```\n\n## Impact\n\nA single crafted URL lets an attacker paint convincing fake messaging onto the real login page (credential phishing) and, where the markup executes, run script in the application's origin.\n\n## Fix direction\n\n- Render the message with `textContent` (or an escaped templating output), never as raw HTML.\n- Map error codes to a fixed set of server-side messages instead of echoing arbitrary input.\n- Add a Content-Security-Policy to blunt script execution if injection slips through.",
+  "links": []
+}

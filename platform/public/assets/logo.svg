@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Ovawatch Labs">
+  <title>Ovawatch Labs</title>
+  <rect width="32" height="32" rx="7.5" fill="#101216"/>
+  <rect x="0.7" y="0.7" width="30.6" height="30.6" rx="6.9" fill="none" stroke="#2d343d" stroke-width="1.2"/>
+  <!-- "Ova" oval + "Watch" eye: a precise, monochrome watchful eye -->
+  <path d="M4.8 16 C 9 9.2, 23 9.2, 27.2 16 C 23 22.8, 9 22.8, 4.8 16 Z"
+        fill="none" stroke="#e7e9ec" stroke-width="1.7" stroke-linejoin="round"/>
+  <circle cx="16" cy="16" r="4.1" fill="none" stroke="#e7e9ec" stroke-width="1.7"/>
+  <circle cx="16" cy="16" r="1.65" fill="#e7e9ec"/>
+</svg>

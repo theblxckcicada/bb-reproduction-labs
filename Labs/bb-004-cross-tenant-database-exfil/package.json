@@ -1,0 +1,23 @@
+{
+  "name": "meridian",
+  "version": "1.0.0",
+  "description": "A multi-tenant analytics data platform for a controlled cross-tenant data exfiltration (BOLA) demonstration.",
+  "main": "src/server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "reset": "node scripts/reset-db.js",
+    "check": "node --check src/server.js && node --check src/db.js && node --check src/auth.js && node --check src/config.js && node --check src/security.js && node --check scripts/reset-db.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "helmet": "^8.0.0",
+    "morgan": "^1.10.0",
+    "uuid": "^11.0.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "$schema": "../../platform/schema/lab.schema.json",
+  "id": "bb-004-cross-tenant-data-exfil",
+  "title": "Cross-Tenant Data Exfiltration via Backup Restore (BOLA)",
+  "summary": "Meridian validates that a database's sourceBackupId exists, but never that the backup belongs to your organization — so an admin in their own tenant can restore another tenant's backup and read every row.",
+  "difficulty": "hard",
+  "categories": [
+    "Broken Object Level Authorization",
+    "Multi-Tenancy",
+    "Access Control"
+  ],
+  "tags": [
+    "bola",
+    "idor",
+    "cwe-639",
+    "multi-tenant",
+    "api"
+  ],
+  "vulnType": "Cross-tenant BOLA on an object reference (missing ownership check)",
+  "estimatedMinutes": 45,
+  "author": "Ovawatch Sec",
+  "runtime": {
+    "type": "node",
+    "install": "npm install",
+    "start": "npm start",
+    "readyPath": "/api/health",
+    "defaultPort": 5060
+  },
+  "brief": "**Meridian** is a multi-tenant managed-database platform. Each organization gets isolated **databases** (which hold record rows), immutable **backups** of those databases, and role-scoped access — `admin` (full control) and `reader` (read-only metadata, the kind of access handed to monitoring vendors, BI tools and contractors).\n\nAuth has two planes: humans sign in to the **console** with email + password (session cookie) and an account can belong to several organizations; **API keys** are minted from the console and authenticate the **programmatic API** (`/v1`) from the terminal. Both planes hit the same handlers.\n\nThe platform ships with **no seed data** — you build everything. Create an account (a new org, you as admin), provision databases, add records, run backups, and mint an API key for the terminal. Members can also self-service keys and invite teammates (always at or below their own role — that is intentional and not the bug).\n\nThe flaw: when you provision a database you may restore it from an existing backup by passing `sourceBackupId`. The API checks that the backup **exists** but not that it **belongs to your organization**. So create two accounts (a *victim* org with a populated database + backup, and an *attacker* org); from the attacker org, restore the victim's backup id and read every row. Reset with `npm run reset`.",
+  "objectives": [
+    "Create a 'victim' account/organization; provision a database, add records (include a CROSS_TENANT_PROOF marker), run a backup, and note its id.",
+    "Create a separate 'attacker' account/organization and mint an admin API key from the console for terminal use.",
+    "(Optional) Invite a read-only 'reader' into the victim org and confirm it can see the backup id but cannot create databases or read records — the realistic discovery vector.",
+    "Confirm the controls: a random backup id is rejected (400), a cross-tenant backup read returns 404, and a cross-tenant projectId is rejected (403).",
+    "From the attacker org, provision a database restoring it from the victim's backup id, then read the restored rows.",
+    "Identify the missing ownership check and propose the fix."
+  ],
+  "hints": [
+    {
+      "text": "Compare the two object references on POST /v1/orgs/{orgId}/databases: projectId and sourceBackupId. One is scoped to your org, the other is not."
+    },
+    {
+      "text": "The attacker never leaves their own organization in the URL — they only reference a foreign object by id. Reading that same backup directly (GET .../backups/{id}) returns 404, but restoring from it succeeds."
+    },
+    {
+      "text": "Look at db.findBackupById vs db.findBackupInOrg in src/db.js, and where each is used in src/server.js."
+    }
+  ],
+  "solution": "## Root cause\n\nIn `src/server.js`, `POST /v1/orgs/:orgId/databases` resolves `sourceBackupId` with `db.findBackupById(id)`, which looks the backup up across **all** tenants — there is no `orgId` scoping. The sibling `projectId` field is resolved with `db.findProjectInOrg(id, orgId)` (correctly scoped → 403 cross-tenant), and direct backup reads use `db.findBackupInOrg(id, orgId)` (correctly scoped → 404 cross-tenant). Only the restore path is missing the check. This is CWE-639 / BOLA.\n\n## Exploit flow\n\n1. Create the **victim** account (email + password, org 'Northstar'). Create a database, add a couple of records including a `CROSS_TENANT_PROOF` marker, and run a backup; copy the backup id. (Optionally mint/issue a `reader` and confirm it can see the backup id but gets 403 on database create and on reading records — metadata only.)\n2. Create the **attacker** account (org 'Atlas') and mint an admin API key from the console (API keys page → POST /v1/orgs/{orgId}/keys) for the terminal.\n3. As the attacker, confirm the controls: a random `sourceBackupId` → 400; reading the victim backup under your org → 404; a victim `projectId` → 403.\n4. As the attacker, provision a database in **your own** org with `sourceBackupId` set to the victim's backup id. It returns 201 with the victim's record count.\n5. Read the new database's records — the rows include `CROSS_TENANT_PROOF`, proving cross-tenant exfiltration.\n\n## Fix direction\n\nScope the restore resolution to the caller's organization: resolve `sourceBackupId` with `findBackupInOrg(sourceBackupId, orgId)` and reject cross-organization references with 403/404 — exactly the check already applied to `projectId` and to direct backup reads. More broadly, enforce object-level authorization on every user-supplied object reference, not just the obvious ones.",
+  "reportRef": "FIND-001 (sanitized lab adaptation)",
+  "links": []
+}
