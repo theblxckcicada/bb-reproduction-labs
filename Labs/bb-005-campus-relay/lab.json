@@ -1,0 +1,42 @@
+{
+  "$schema": "../../platform/schema/lab.schema.json",
+  "id": "bb-005-campus-relay",
+  "title": "Campus Relay",
+  "summary": "Build two independent teacher workspaces and investigate whether a student from one classroom can cross into another teacher's login-link workflow.",
+  "difficulty": "hard",
+  "categories": ["Access Control", "Account Takeover", "API Security"],
+  "tags": ["authorization-chain", "idor", "bfla", "session", "school"],
+  "vulnType": "Chained function-level and object-level authorization failure",
+  "estimatedMinutes": 45,
+  "author": "Ovawatch Security",
+  "runtime": {
+    "type": "node",
+    "install": "npm install",
+    "start": "npm start",
+    "readyPath": "/api/health",
+    "defaultPort": 5070
+  },
+  "brief": "**Campus Relay** is a fictional classroom-management platform. Teachers self-register, create classes, add student profiles, manage rosters, and generate time-limited student login links. The application starts completely empty: create two teacher accounts and all test data yourself.\n\nUse the normal UI to establish two isolated teacher/class/student relationships. Then reproduce the suspect API request with curl, an intercepting proxy, or browser developer tools. Follow the downstream login-link workflow from a clean browser context.\n\nAll branding, routes, identities, and identifiers are synthetic. Keep this intentionally vulnerable application bound to localhost.",
+  "objectives": [
+    "Create a victim teacher account, class, and student; enroll the student and record both generated IDs.",
+    "Create an unrelated attacker teacher account and a separate class.",
+    "Confirm the attacker cannot use the victim-owned class as a destination.",
+    "Modify the normal enrollment request so the victim student becomes the source and the attacker class remains the destination.",
+    "Generate login links for the attacker class and exchange the foreign student's link without teacher cookies.",
+    "Open the one-tap URL in a clean browser and verify the resulting student session."
+  ],
+  "hints": [
+    {
+      "text": "Capture the request made when a teacher adds one of their own students to a class. It contains independently controlled source and destination identifiers."
+    },
+    {
+      "text": "Keep the destination class owned by the attacker, but substitute the victim student's ID in the path."
+    },
+    {
+      "text": "After the roster changes, use the legitimate Student login links feature and exchange the returned /access token without cookies."
+    }
+  ],
+  "solution": "## Root cause\n\n`POST /api/students/{studentId}/enroll` verifies that every destination `classId` belongs to the signed-in teacher. It resolves the source student globally, however, and never verifies that the teacher already manages that student. A foreign student can therefore be enrolled into an attacker-controlled class.\n\nThe login-link feature trusts current class membership. Once the foreign student appears in the attacker's class, `GET /api/classLoginLinks/{classId}` issues that student's access link. The public `GET /api/studentPortalLogin/{token}` exchange returns a one-tap URL, which creates a student session in a clean browser.\n\n## Reproduction\n\n1. Register teacher A. Create a class and student, enroll the student normally, and copy the student ID.\n2. Sign out. Register teacher B and create a different class. Copy its class ID.\n3. As teacher B, send `POST /api/students/{TEACHER_A_STUDENT_ID}/enroll` with `{\"classIds\":[\"TEACHER_B_CLASS_ID\"]}`. It returns 204.\n4. Request `/api/classLoginLinks/{TEACHER_B_CLASS_ID}` as teacher B and extract the foreign student's `/access/{token}` link.\n5. Request `/api/studentPortalLogin/{token}` without cookies and open the returned URL in a private browser. `/api/session` reports `type: student`.\n\n## Remediation\n\nAuthorize both sides before changing the relationship: the acting teacher must already own or be explicitly connected to the source student as well as manage every destination class. Perform scoped database lookups, fail atomically, and return 403/404 for foreign sources. Do not let newly created membership alone authorize sensitive login-link issuance. Bind issuance to an independently authorized teacher-student relationship, keep links short-lived and single-use where practical, and audit sibling student write routes.",
+  "reportRef": "Sanitized school-platform finding adaptation",
+  "links": []
+}

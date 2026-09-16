@@ -20,7 +20,7 @@
     "training",
     "appsec"
   ],
-  "author": "Ovawatch Sec",
+  "author": "Ovawatch Security",
   "license": "MIT",
   "dependencies": {
     "dotenv": "^16.4.7",

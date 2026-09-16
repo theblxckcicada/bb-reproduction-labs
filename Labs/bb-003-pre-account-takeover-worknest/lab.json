@@ -4,19 +4,11 @@
   "title": "Pre-Account Takeover via Federated Linking",
   "summary": "WorkNest links a Google sign-in to any pre-existing local account with the same email — letting an attacker who registered first retain access after the victim 'signs up' with Google.",
   "difficulty": "hard",
-  "categories": [
-    "Account Takeover",
-    "Authentication",
-    "OAuth"
-  ],
-  "tags": [
-    "oauth",
-    "account-linking",
-    "identity"
-  ],
+  "categories": ["Account Takeover", "Authentication", "OAuth"],
+  "tags": ["oauth", "account-linking", "identity"],
   "vulnType": "Pre-account-takeover via unsafe federated account linking",
   "estimatedMinutes": 40,
-  "author": "Ovawatch Sec",
+  "author": "Ovawatch Security",
   "runtime": {
     "type": "node",
     "install": "npm install",

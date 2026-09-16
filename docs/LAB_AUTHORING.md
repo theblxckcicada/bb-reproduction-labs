@@ -44,7 +44,7 @@ autocomplete and validation.
   "categories": ["SSRF"],                    // drives catalog filters
   "vulnType": "Server-Side Request Forgery",
   "estimatedMinutes": 35,
-  "author": "Ovawatch Sec",
+  "author": "Ovawatch Security",
   "reportRef": "optional id or URL (sanitized)",
 
   "runtime": {

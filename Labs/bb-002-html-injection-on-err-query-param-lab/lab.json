@@ -4,18 +4,11 @@
   "title": "HTML Injection via Error Query Param",
   "summary": "A sign-in screen reflects its `error` query parameter into the page as markup, letting an attacker inject arbitrary HTML through a crafted link.",
   "difficulty": "easy",
-  "categories": [
-    "HTML Injection",
-    "XSS"
-  ],
-  "tags": [
-    "reflected",
-    "login",
-    "client-side"
-  ],
+  "categories": ["HTML Injection", "XSS"],
+  "tags": ["reflected", "login", "client-side"],
   "vulnType": "Reflected HTML injection (leading to XSS)",
   "estimatedMinutes": 20,
-  "author": "Ovawatch Sec",
+  "author": "Ovawatch Security",
   "runtime": {
     "type": "node",
     "start": "npm start",

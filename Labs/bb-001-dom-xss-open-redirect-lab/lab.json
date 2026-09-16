@@ -4,18 +4,11 @@
   "title": "DOM XSS via Open Redirect",
   "summary": "A polished storefront's post-login loader trusts user-controlled query parameters and writes them straight into the DOM — chain an open redirect into DOM-based XSS.",
   "difficulty": "medium",
-  "categories": [
-    "XSS",
-    "Open Redirect"
-  ],
-  "tags": [
-    "client-side",
-    "dom",
-    "innerHTML"
-  ],
+  "categories": ["XSS", "Open Redirect"],
+  "tags": ["client-side", "dom", "innerHTML"],
   "vulnType": "DOM-based XSS (chained from an open redirect)",
   "estimatedMinutes": 30,
-  "author": "Ovawatch Sec",
+  "author": "Ovawatch Security",
   "runtime": {
     "type": "node",
     "start": "npm start",
