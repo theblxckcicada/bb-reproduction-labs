@@ -1,0 +1,15 @@
+{
+  "name": "boardharbor-wildcard-websocket-lab",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Interactive multi-tenant WebSocket authorization lab",
+  "main": "src/server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/server.js",
+    "check": "node --check src/server.js && node --check public/app.js && node --check scripts/poc.js && node --test test/lab.test.js",
+    "poc": "node scripts/poc.js"
+  },
+  "engines": { "node": ">=20" },
+  "dependencies": { "ws": "8.21.0" }
+}

@@ -13,7 +13,11 @@ const HEARTBEAT_INTERVAL_MS = 30000;
 const DISCLAIMER_ACK_KEY = "ovawatch-labs-ack-v1";
 
 // ---- App state -------------------------------------------------------------
-let labsData = { labs: [], facets: { categories: [], difficulties: [] }, meta: {} };
+let labsData = {
+  labs: [],
+  facets: { categories: [], difficulties: [] },
+  meta: {},
+};
 let catalogCtrl = null;
 let labCtrl = null;
 let currentLabId = null;
@@ -25,7 +29,10 @@ let router = null;
 // ---- Shell elements --------------------------------------------------------
 const appRoot = document.getElementById("app");
 const outlet = el("div", { class: "content" });
-const liveStat = el("div", { class: "topbar-stat" }, [el("span", { class: "dot" }), el("span", {}, "0 running")]);
+const liveStat = el("div", { class: "topbar-stat" }, [
+  el("span", { class: "dot" }),
+  el("span", {}, "0 running"),
+]);
 const toasts = el("div", { class: "toasts" });
 const trayHost = el("div");
 
@@ -43,16 +50,29 @@ function buildShell() {
       },
     },
     [
-      el("img", { class: "brand-mark", src: "/assets/logo_transparent.png", alt: "", width: "28", height: "28" }),
+      el("img", {
+        class: "brand-mark",
+        src: "/assets/logo_transparent.png",
+        alt: "",
+        width: "28",
+        height: "28",
+      }),
       el("div", { class: "brand-lockup" }, [
-        el("div", { class: "brand-name" }, ["Ovawatch", el("span", { class: "brand-tag" }, "Labs")]),
+        el("div", { class: "brand-name" }, [
+          "Ovawatch",
+          el("span", { class: "brand-tag" }, "Labs"),
+        ]),
         el("div", { class: "brand-sub" }, "Bug Bounty Repro Range"),
       ]),
-    ]
+    ],
   );
 
   const topbar = el("header", { class: "topbar" }, [
-    el("div", { class: "topbar-inner" }, [brand, el("div", { class: "topbar-spacer" }), liveStat]),
+    el("div", { class: "topbar-inner" }, [
+      brand,
+      el("div", { class: "topbar-spacer" }),
+      liveStat,
+    ]),
   ]);
 
   appRoot.replaceChildren(topbar, outlet, buildFooter(), toasts, trayHost);
@@ -82,12 +102,16 @@ function buildFooter() {
         el(
           "span",
           {},
-          "Intentionally vulnerable software for local, educational, and authorized security testing only. Never deploy these labs to a public or shared network, and only apply what you learn to systems you own or are explicitly authorized to test."
+          "Intentionally vulnerable software for local, educational, and authorized security testing only. Never deploy these labs to a public or shared network, and only apply what you learn to systems you own or are explicitly authorized to test.",
         ),
       ]),
       el("div", { class: "footer-meta" }, [
-        el("button", { class: "footer-link", onclick: () => showDisclaimer(true) }, "Disclaimer"),
-        el("span", {}, "© 2026 Ovawatch Sec"),
+        el(
+          "button",
+          { class: "footer-link", onclick: () => showDisclaimer(true) },
+          "Disclaimer",
+        ),
+        el("span", {}, "© 2026 Ovawatch Security"),
       ]),
     ]),
   ]);
@@ -146,32 +170,48 @@ function showDisclaimer(force = false) {
   });
   document.addEventListener("keydown", onKey);
 
-  const item = (lead, rest) => el("li", {}, [el("strong", {}, lead), ` ${rest}`]);
+  const item = (lead, rest) =>
+    el("li", {}, [el("strong", {}, lead), ` ${rest}`]);
 
   const card = el("div", { class: "modal-card" }, [
-    el("div", { class: "modal-head" }, [warnIco(20), el("div", { class: "modal-title" }, "Responsible use")]),
+    el("div", { class: "modal-head" }, [
+      warnIco(20),
+      el("div", { class: "modal-title" }, "Responsible use"),
+    ]),
     el("div", { class: "modal-body" }, [
       el(
         "p",
         {},
-        "These labs are intentionally vulnerable, reproduced from real findings for education and authorized security research."
+        "These labs are intentionally vulnerable, reproduced from real findings for education and authorized security research.",
       ),
       el("ul", {}, [
-        item("Run them locally.", "Never deploy these apps to the public internet or any shared/production network."),
+        item(
+          "Run them locally.",
+          "Never deploy these apps to the public internet or any shared/production network.",
+        ),
         item(
           "Stay authorized.",
-          "Only use techniques you learn here on systems you own or are explicitly permitted to test."
+          "Only use techniques you learn here on systems you own or are explicitly permitted to test.",
         ),
-        item("Sanitized.", "Names, paths, and domains are changed; any resemblance to live systems is incidental."),
+        item(
+          "Sanitized.",
+          "Names, paths, and domains are changed; any resemblance to live systems is incidental.",
+        ),
         item(
           "Your responsibility.",
-          "You are accountable for complying with all applicable laws and program rules. The authors accept no liability for misuse."
+          "You are accountable for complying with all applicable laws and program rules. The authors accept no liability for misuse.",
         ),
       ]),
     ]),
     el("div", { class: "modal-actions" }, [
-      force ? el("button", { class: "btn btn-ghost", onclick: close }, "Close") : null,
-      el("button", { class: "btn btn-primary", onclick: accept }, force ? "Got it" : "I understand & accept"),
+      force
+        ? el("button", { class: "btn btn-ghost", onclick: close }, "Close")
+        : null,
+      el(
+        "button",
+        { class: "btn btn-primary", onclick: accept },
+        force ? "Got it" : "I understand & accept",
+      ),
     ]),
   ]);
 
@@ -192,13 +232,17 @@ async function loadLabs(refresh = false) {
 }
 
 function updateLiveStat() {
-  const running = labsData.labs.filter((l) => l.runtimeStatus.status === "running").length;
+  const running = labsData.labs.filter(
+    (l) => l.runtimeStatus.status === "running",
+  ).length;
   liveStat.classList.toggle("live", running > 0);
   liveStat.lastChild.textContent = `${running} running`;
 }
 
 function renderTray() {
-  const active = labsData.labs.filter((l) => l.runtimeStatus.status !== "stopped");
+  const active = labsData.labs.filter(
+    (l) => l.runtimeStatus.status !== "stopped",
+  );
   trayHost.replaceChildren();
   if (!active.length) {
     return;
@@ -213,14 +257,20 @@ function renderTray() {
           title: l.title,
           onclick: () => router.navigate(`/lab/${encodeURIComponent(l.id)}`),
         },
-        l.title
+        l.title,
       ),
       l.runtimeStatus.status === "running"
-        ? el("button", { class: "btn btn-ghost btn-sm", title: "Stop lab", onclick: () => stopLab(l.id) }, [
-            icon("stop", 11),
-          ])
+        ? el(
+            "button",
+            {
+              class: "btn btn-ghost btn-sm",
+              title: "Stop lab",
+              onclick: () => stopLab(l.id),
+            },
+            [icon("stop", 11)],
+          )
         : null,
-    ])
+    ]),
   );
   trayHost.appendChild(
     el("div", { class: "tray" }, [
@@ -231,7 +281,7 @@ function renderTray() {
           : null,
       ]),
       ...items,
-    ])
+    ]),
   );
 }
 
@@ -262,7 +312,9 @@ async function showLab(id) {
   }
 
   currentLabId = id;
-  lastLabStatus = detail.runtimeStatus ? detail.runtimeStatus.status : "stopped";
+  lastLabStatus = detail.runtimeStatus
+    ? detail.runtimeStatus.status
+    : "stopped";
 
   labCtrl = buildLabPage({
     lab: detail,
@@ -272,8 +324,12 @@ async function showLab(id) {
       start: () => startLab(id),
       stop: () => stopLab(id),
       setProgress: (state) =>
-        api.putProgress(id, { state }).then(() => loadLabs()).catch((e) => toast("error", e.message)),
-      revealHints: (count) => api.putProgress(id, { revealedHints: count }).catch(() => {}),
+        api
+          .putProgress(id, { state })
+          .then(() => loadLabs())
+          .catch((e) => toast("error", e.message)),
+      revealHints: (count) =>
+        api.putProgress(id, { revealedHints: count }).catch(() => {}),
     },
   });
   outlet.replaceChildren(labCtrl.node);
@@ -341,8 +397,15 @@ function handleStatusTransition(id, data) {
     if (data.status === "running") {
       toast("success", "Lab is ready — open it from the console.");
     } else if (data.status === "error") {
-      toast("error", data.error || "Lab failed to start. Check the console output.");
-    } else if (data.status === "stopped" && lastLabStatus && lastLabStatus !== "stopped") {
+      toast(
+        "error",
+        data.error || "Lab failed to start. Check the console output.",
+      );
+    } else if (
+      data.status === "stopped" &&
+      lastLabStatus &&
+      lastLabStatus !== "stopped"
+    ) {
       toast("info", "Lab stopped.");
     }
     lastLabStatus = data.status;
@@ -407,16 +470,23 @@ async function init() {
   router = createRouter(
     [
       { pattern: /^\/$/, handler: () => showCatalog() },
-      { pattern: /^\/lab\/(?<id>[^/]+)$/, handler: ({ id }) => showLab(decodeURIComponent(id)) },
+      {
+        pattern: /^\/lab\/(?<id>[^/]+)$/,
+        handler: ({ id }) => showLab(decodeURIComponent(id)),
+      },
     ],
-    () => router.navigate("/")
+    () => router.navigate("/"),
   );
 
   try {
     await loadLabs();
   } catch (error) {
     outlet.replaceChildren(
-      el("div", { class: "empty" }, `Could not reach the platform API: ${error.message}`)
+      el(
+        "div",
+        { class: "empty" },
+        `Could not reach the platform API: ${error.message}`,
+      ),
     );
   }
 

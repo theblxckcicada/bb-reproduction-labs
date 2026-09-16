@@ -9,16 +9,10 @@
     "Multi-Tenancy",
     "Access Control"
   ],
-  "tags": [
-    "bola",
-    "idor",
-    "cwe-639",
-    "multi-tenant",
-    "api"
-  ],
+  "tags": ["bola", "idor", "cwe-639", "multi-tenant", "api"],
   "vulnType": "Cross-tenant BOLA on an object reference (missing ownership check)",
   "estimatedMinutes": 45,
-  "author": "Ovawatch Sec",
+  "author": "Ovawatch Security",
   "runtime": {
     "type": "node",
     "install": "npm install",
