@@ -1,0 +1,50 @@
+{
+  "$schema": "../../platform/schema/lab.schema.json",
+  "id": "bb-007-pulsewire-attachment-link-xss",
+  "title": "Pulsewire Meeting Card Takeover",
+  "summary": "Trace a member-created webhook attachment through inconsistent URL validation and an unsafe meeting-link handler to persistent workspace-owner takeover.",
+  "difficulty": "hard",
+  "categories": ["XSS", "Account Takeover", "Web Security"],
+  "tags": ["stored-xss", "javascript-url", "webhook", "localstorage", "session-theft", "broken-access-control"],
+  "vulnType": "Stored XSS via unvalidated attachment URL leading to persistent account takeover",
+  "estimatedMinutes": 40,
+  "author": "Ovawatch Security",
+  "reportRef": "Sanitized collaboration-SaaS attachment title-link finding adaptation",
+  "runtime": {
+    "type": "node",
+    "install": "npm install",
+    "start": "npm start",
+    "readyPath": "/api/health",
+    "defaultPort": 5090,
+    "env": {
+      "LINK_POLICY": "vulnerable"
+    }
+  },
+  "brief": "**Pulsewire** is a fictional collaboration SaaS used by Northstar Labs. It supports self-service member registration, normal channel messaging, and member-owned integrations. Marketplace applications are owner-restricted, but ordinary members can create first-party incoming webhooks for channels they already use. The web client stores its refresh session in local storage and renders webhook attachment cards alongside normal messages.\n\nCreate your own member account or use the seeded member, then establish the permission boundaries before testing message content. Compare how the product treats URLs supplied in message text, block buttons, and an attachment title. Assess the client-side behavior applied to meeting-looking attachment links and demonstrate impact against the workspace owner in a separate browser profile.\n\nThe interface contains no exploit helper. Seeded control credentials are in the lab README. All accounts, tokens, messages, and billing data are synthetic and local to this lab.",
+  "objectives": [
+    "Register a fresh account or sign in as the seeded member, then confirm marketplace app installation is owner-restricted while incoming webhook creation is allowed.",
+    "Create a webhook targeting #general and identify its unauthenticated tokenized post endpoint.",
+    "Demonstrate that an unsafe URL is inert in message text and removed from a button while the identical attachment title_link is stored verbatim.",
+    "Craft a title_link that begins with javascript: but still passes the client's meeting-link test.",
+    "Trigger the stored card once from the owner's separate browser profile and capture the owner's refresh credential.",
+    "Exchange only the captured refresh credential for an OWNER access token.",
+    "Prove the member receives 403 on billing while the token minted from the stolen owner session receives 200.",
+    "Run the same payload under LINK_POLICY=fixed and verify it is rejected before storage."
+  ],
+  "hints": [
+    {
+      "text": "The integration settings are available to a normal member. Compare that with the response from POST /api/apps/install and preserve the role differential."
+    },
+    {
+      "text": "Send the same non-HTTP URL in three places: message markup, blocks[].elements[].url, and attachments[].title_link. Read the stored message back rather than relying only on the 200 response."
+    },
+    {
+      "text": "The meeting detector checks only how the value ends. A javascript: URL can contain a valid-looking https://meet.pulsewire.test/abc-defg-hij suffix after a JavaScript line comment."
+    },
+    {
+      "text": "The owner session is stored under a pulsewire_session_ localStorage key. The local collector accepts four numbered requests at /collector/p0/... through /collector/p3/...."
+    }
+  ],
+  "solution": "## Finding\n\nPulsewire scheme-validates message links and block-button URLs, but vulnerable mode omits the same validation for `attachments[].title_link`. The SPA then uses an end-anchored, start-unanchored meeting regex. A value beginning with `javascript:` and ending in a valid meeting URL is treated as a meeting invite. The click handler prevents the safe anchor navigation and passes the original server value into an imperative new-window navigation sink. The source finding used `window.open(rawValue)` directly; this lab's compatibility branch opens a same-origin meeting window and assigns the same unchecked value to its `Location`, preserving execution on current Chromium. The script runs in the Pulsewire origin, reads the owner's refresh token from local storage, and sends it to the collector.\n\n## Accounts\n\nUse separate browser profiles:\n\n- Member: `maya@northstar.test` / `member-demo-2026`\n- Owner: `olivia@northstar.test` / `owner-demo-2026`\n- Guest control: `eli@agency.test` / `guest-demo-2026`\n\n## Exact reproduction\n\n1. Launch the lab once from the platform. Note its assigned URL, for example `http://localhost:4100`. Do not stop or restart it during the chain.\n2. In browser profile A, sign in as Maya. Open **Integrations** and confirm a member can create an incoming webhook for `#general`. **Plans & billing** returns the owner-required view.\n3. Open a terminal in this lab directory and run `python solution/poc.py --base-url \"http://localhost:<PORT>\" --out evidence.json`. Linux, macOS, and WSL can use `bash solution/poc.sh --base-url \"http://localhost:<PORT>\" --out evidence.json`. No npm command is required.\n4. The client signs in as Maya, proves application installation returns `403 code=403210`, creates a first-party webhook, and posts one message. The body puts the same crafted URL into message text, a block button, and `attachments[0].title_link`.\n5. The webhook returns the two-byte body `ok`. Readback proves the attachment URL starts with `javascript:` and survived verbatim. The message-text value remains inert and the unsafe button's `url` property is absent, while a sibling HTTPS button survives.\n6. Leave the client waiting. In browser profile B, sign in as Olivia, open `#general`, and click the blue **STANDUP · JOIN CALL** attachment title once. The visible anchor has an unsafe-href guard, but the meeting handler passes the original string into the same-origin popup's unchecked navigation sink.\n7. The payload reads the `pulsewire_session_...` localStorage entry and sends the refresh token to `/collector/p0/...` through `/collector/p3/...`. The client reassembles the four chunks and verifies `role=OWNER` and `type=refresh`.\n8. The client sends only that captured value to `POST /api/workspaces/ws_northstar_01/refresh`. It receives a fresh access token for Olivia; no password, current access token, or second factor is supplied.\n9. The client requests the same billing endpoint twice. Maya's original token returns `403`; the access token minted from Olivia's stolen refresh token returns `200` with the synthetic Business trial record. The sanitized evidence file records this differential without saving either token.\n\n## Manual payload shape\n\nThe reference client builds a value with this structure:\n\n```text\njavascript:(function(){/* read pulsewire_session_ refreshToken; send four chunks */})()//https://meet.pulsewire.test/abc-defg-hij\n```\n\nThe `//` comments out the query string appended by the client. The valid-looking meeting URL remains at the end of the original value, satisfying the vulnerable regex because it lacks `^`.\n\n## Why the controls matter\n\n- A guest cannot create the webhook (`403`).\n- The member cannot install a marketplace application (`403210`), so the chain does not require admin-granted app privileges.\n- The unsafe string in message text is not linkified.\n- The unsafe block-button URL is removed while an HTTPS sibling is retained.\n- The member's token is denied billing (`403`) and no token returns `401`. Only the stolen owner's authority produces `200`.\n\n## Remediation verification\n\nStop the lab, start it with `LINK_POLICY=fixed`, and repeat the same submission. The server returns `400 code=400410` before the attachment is stored. Fixed mode also uses a start-anchored meeting expression and checks the protocol immediately before navigation.\n\n## Root cause and remediation\n\nTwo independent defects form the chain: incomplete server-side scheme validation and a client-side regex/sink mismatch. Apply an allow-list (`http:`, `https:`, and where required `mailto:`) to every attachment URL field on every write plane. Anchor and escape the meeting-link expression, and parse/check the URL protocol immediately before any new-window navigation. Reduce impact with a restrictive `script-src` CSP and an HttpOnly session design that does not expose long-lived refresh credentials to origin JavaScript.",
+  "links": []
+}

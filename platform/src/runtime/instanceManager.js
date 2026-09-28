@@ -20,6 +20,7 @@ const registry = require("../labs/registry");
 const portPool = require("./portPool");
 const { runToCompletion, startLongRunning, killTree } = require("./processRunner");
 const { waitForReady } = require("./health");
+const { buildHttpOrigin } = require("../networkHost");
 
 /** Statuses that count against the concurrency cap / mean "occupied". */
 const ACTIVE_STATUSES = new Set(["installing", "starting", "running", "stopping"]);
@@ -235,7 +236,7 @@ class InstanceManager extends EventEmitter {
 
     // 2. Allocate a port and prepare the environment.
     inst.port = await portPool.allocate();
-    inst.url = `http://${config.host}:${inst.port}`;
+    inst.url = buildHttpOrigin(config.connectHost, inst.port);
     const env = this.#buildEnv(lab, inst.port);
 
     // 3. Launch the lab server.
@@ -254,7 +255,7 @@ class InstanceManager extends EventEmitter {
 
     // 4. Wait until it answers HTTP (or fails / aborts).
     await waitForReady({
-      host: config.host,
+      host: config.connectHost,
       port: inst.port,
       path: lab.runtime.readyPath,
       timeoutMs: config.startTimeoutMs,
@@ -293,7 +294,7 @@ class InstanceManager extends EventEmitter {
     env[lab.runtime.portEnv] = String(port);
     env.PORT = String(port);
     env.HOST = config.host;
-    env.BASE_URL = `http://${config.host}:${port}`;
+    env.BASE_URL = buildHttpOrigin(config.connectHost, port);
     if (!env.NODE_ENV) {
       env.NODE_ENV = "development";
     }

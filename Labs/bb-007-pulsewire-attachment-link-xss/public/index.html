@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <title>Pulsewire · Northstar Labs</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <section id="login-screen" class="login-screen">
+      <div class="login-brand">
+        <a class="brand-lockup brand-lockup-light" href="#" aria-label="Pulsewire home">
+          <span class="brand-mark" aria-hidden="true"><span></span><span></span></span>
+          <span>pulsewire</span>
+        </a>
+        <div class="login-story">
+          <p class="eyebrow light">WHERE GREAT WORK CONNECTS</p>
+          <h1>Bring every conversation into focus.</h1>
+          <p>One calm place for project updates, decisions, files, and the people moving work forward.</p>
+          <div class="story-card">
+            <div class="story-avatars"><span>OC</span><span>MP</span><span>EB</span><i>+15</i></div>
+            <p><strong>Northstar Labs</strong><br>18 teammates collaborating now</p>
+          </div>
+        </div>
+        <div class="orb orb-one"></div><div class="orb orb-two"></div>
+      </div>
+
+      <main class="login-panel">
+        <div class="login-card">
+          <div class="mobile-brand">
+            <span class="brand-mark" aria-hidden="true"><span></span><span></span></span>
+            <strong>pulsewire</strong>
+          </div>
+          <p id="auth-eyebrow" class="eyebrow">WELCOME BACK</p>
+          <h2 id="auth-title">Sign in to your workspace</h2>
+          <p id="auth-subtitle" class="subtle">Continue to <strong>Northstar Labs</strong></p>
+          <form id="login-form" novalidate>
+            <label for="email">Work email</label>
+            <input id="email" name="email" type="email" autocomplete="username" placeholder="you@company.com" required>
+            <div class="label-row"><label for="password">Password</label><button class="text-button" type="button">Forgot password?</button></div>
+            <div class="password-field">
+              <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required>
+              <button id="toggle-password" class="icon-button input-action" type="button" aria-label="Show password"></button>
+            </div>
+            <p id="login-error" class="form-error" role="alert"></p>
+            <button id="login-button" class="primary-button full" type="submit">Sign in to Pulsewire</button>
+          </form>
+          <form id="register-form" class="hidden" novalidate>
+            <label for="register-name">Full name</label>
+            <input id="register-name" name="name" type="text" autocomplete="name" placeholder="Alex Morgan" minlength="2" maxlength="60" required>
+            <label for="register-email">Work email</label>
+            <input id="register-email" name="email" type="email" autocomplete="email" placeholder="alex@company.com" required>
+            <label for="register-password">Create password</label>
+            <input id="register-password" name="password" type="password" autocomplete="new-password" placeholder="At least 10 characters" minlength="10" maxlength="128" required>
+            <label for="register-confirm">Confirm password</label>
+            <input id="register-confirm" name="confirmPassword" type="password" autocomplete="new-password" placeholder="Repeat your password" minlength="10" maxlength="128" required>
+            <p id="register-error" class="form-error" role="alert"></p>
+            <button id="register-button" class="primary-button full" type="submit">Create my account</button>
+          </form>
+          <div id="social-login">
+            <div class="login-divider"><span>or</span></div>
+            <button class="sso-button" type="button"><span class="google-g">G</span>Continue with Google</button>
+          </div>
+          <p class="auth-switch"><span id="auth-switch-copy">New to Pulsewire?</span> <button id="auth-switch-button" type="button">Create an account</button></p>
+          <p class="legal">By continuing, you agree to Pulsewire's Terms and Privacy Policy.</p>
+        </div>
+      </main>
+    </section>
+
+    <div id="app-shell" class="app-shell hidden">
+      <aside class="sidebar">
+        <div class="sidebar-top">
+          <div class="workspace-switcher">
+            <span class="workspace-logo">N</span>
+            <span><strong>Northstar Labs</strong><small>Business trial</small></span>
+            <button class="icon-button chevron-button" aria-label="Workspace menu">⌄</button>
+          </div>
+          <button class="compose-button" aria-label="Create a message">✎</button>
+        </div>
+
+        <nav class="primary-nav" aria-label="Workspace navigation">
+          <button class="nav-item" data-view="threads"><span>▤</span>Threads<span class="nav-count">3</span></button>
+          <button class="nav-item" data-view="activity"><span>◷</span>Activity<span class="activity-dot"></span></button>
+          <button class="nav-item" data-view="saved"><span>⌑</span>Saved items</button>
+        </nav>
+
+        <div class="channel-section">
+          <div class="section-title"><button id="channel-collapse">⌄ <span>Channels</span></button><button aria-label="Add channel">＋</button></div>
+          <div id="channel-list"></div>
+        </div>
+
+        <div class="channel-section direct-section">
+          <div class="section-title"><button>⌄ <span>Direct messages</span></button><button aria-label="New direct message">＋</button></div>
+          <button class="dm-item"><span class="avatar avatar-purple">OC<i class="presence"></i></span><span>Olivia Chen</span></button>
+          <button class="dm-item"><span class="avatar avatar-coral">MP<i class="presence"></i></span><span>Maya Patel</span></button>
+          <button class="dm-item"><span class="avatar avatar-teal">EB</span><span>Eli Brooks</span></button>
+        </div>
+
+        <nav class="utility-nav" aria-label="Workspace settings">
+          <button id="integrations-nav" class="nav-item"><span>⌁</span>Integrations</button>
+          <button id="billing-nav" class="nav-item"><span>◇</span>Plans &amp; billing</button>
+        </nav>
+
+        <div class="user-menu">
+          <span id="user-avatar" class="avatar">--<i class="presence"></i></span>
+          <button id="user-menu-button"><strong id="user-name">Loading…</strong><small id="user-role">Member</small></button>
+          <button id="logout-button" class="icon-button" title="Sign out" aria-label="Sign out">↪</button>
+        </div>
+      </aside>
+
+      <section class="workspace-main">
+        <header class="topbar">
+          <button id="mobile-menu" class="icon-button mobile-menu" aria-label="Open menu">☰</button>
+          <div id="header-copy" class="header-copy">
+            <div><h1 id="view-title"># general</h1><button class="star-button" aria-label="Star channel">☆</button></div>
+            <p id="view-subtitle">Company-wide announcements and work-based matters</p>
+          </div>
+          <div class="topbar-actions">
+            <button class="members-button"><span class="mini-avatar m1">OC</span><span class="mini-avatar m2">MP</span><span class="mini-avatar m3">EB</span><strong id="member-count">18</strong></button>
+            <button class="icon-button search-button" aria-label="Search">⌕</button>
+            <button class="icon-button" aria-label="Help">?</button>
+          </div>
+        </header>
+
+        <main id="content" class="content"></main>
+      </section>
+    </div>
+
+    <div id="toast-region" class="toast-region" aria-live="polite"></div>
+    <script src="/app.js" defer></script>
+  </body>
+</html>

@@ -1,0 +1,19 @@
+{
+  "name": "pulsewire-attachment-link-xss-lab",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Stored XSS and persistent account-takeover reproduction in a collaboration SaaS",
+  "main": "src/server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/server.js",
+    "check": "node --check src/security.js && node --check src/server.js && node --check public/app.js && node --test test/lab.test.js",
+    "test": "node --test test/lab.test.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "express": "4.22.3"
+  }
+}

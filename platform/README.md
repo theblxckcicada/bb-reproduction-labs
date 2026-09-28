@@ -58,7 +58,7 @@ lab**, then **Open Lab** once it is running.
 | Variable            | Default       | Purpose                                            |
 | ------------------- | ------------- | -------------------------------------------------- |
 | `BRAND_NAME`        | Ovawatch Labs | UI header label                                    |
-| `BIND_HOST`         | 127.0.0.1     | Interface the platform binds to                    |
+| `BIND_HOST`         | 127.0.0.1     | Interface used by the platform and launched labs   |
 | `PORT`              | 8080          | Platform port                                      |
 | `LABS_DIR`          | `../Labs`     | Where labs are discovered                          |
 | `LAB_PORT_RANGE`    | 4100-4199     | Ports handed to launched labs                      |
@@ -82,10 +82,13 @@ single-user** use:
 
 - The control plane binds to `127.0.0.1` by default. Keep it that way; do not
   expose it on a routable interface.
-- Launched labs should bind localhost too — new labs are guided to
-  `app.listen(PORT, process.env.HOST)` (the platform injects `HOST=127.0.0.1`).
-  Some existing labs bind all interfaces; rely on your host firewall and do not
-  run them on untrusted networks.
+- If `BIND_HOST=0.0.0.0`, wildcard binding is used only for listening. **Open
+  Lab** and **Copy URL** use the hostname or IP through which your browser
+  accessed the platform (for example, `localhost` or a LAN address), never
+  `0.0.0.0`.
+- Launched labs receive `HOST=BIND_HOST`; with the default configuration this
+  is `127.0.0.1`. Setting it to `0.0.0.0` exposes the intentionally vulnerable
+  labs on every IPv4 interface, so use a trusted network and host firewall.
 - The platform only ever runs the `install`/`start` commands from a lab's own
   manifest (authored alongside the lab) — it does not execute arbitrary input
   from the browser. Lab ids and working directories are validated to stay

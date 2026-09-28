@@ -20,6 +20,9 @@ async function api(url, options = {}) {
     ...options,
     headers: {
       ...(options.body ? { "content-type": "application/json" } : {}),
+      ...(state.session?.accessToken && url.startsWith("/api/")
+        ? { authorization: `Bearer ${state.session.accessToken}` }
+        : {}),
       ...(options.headers || {}),
     },
   });
@@ -55,6 +58,30 @@ function initials(name) {
     .toUpperCase();
 }
 
+function icon(name) {
+  const paths = {
+    activity:
+      '<path d="M4 13h3l2-7 4 12 2-7h5"/><path d="M3 3v18h18"/>',
+    bell: '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/>',
+    board:
+      '<rect x="3" y="3" width="7" height="18" rx="2"/><rect x="14" y="3" width="7" height="11" rx="2"/>',
+    chevron: '<path d="m9 18 6-6-6-6"/>',
+    columns:
+      '<rect x="3" y="4" width="7" height="16" rx="2"/><rect x="14" y="4" width="7" height="16" rx="2"/>',
+    filter: '<path d="M4 5h16M7 12h10M10 19h4"/>',
+    lock: '<rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',
+    plus: '<path d="M12 5v14M5 12h14"/>',
+    search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>',
+    sort: '<path d="M8 6h12M8 12h9M8 18h6"/><path d="m3 8 2-2 2 2M5 6v12"/>',
+    table:
+      '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 4v16"/>',
+    timeline:
+      '<path d="M5 5v14M5 8h5M5 16h9"/><circle cx="16" cy="8" r="2"/><circle cx="18" cy="16" r="2"/>',
+    work: '<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>',
+  };
+  return `<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${paths[name] || paths.board}</svg>`;
+}
+
 function statusClass(status) {
   return status.toLowerCase().replaceAll(" ", "-");
 }
@@ -66,7 +93,7 @@ function showToast(message) {
 }
 
 function logo() {
-  return '<a class="brand" href="/"><span class="logo-mark">B</span><span>BoardHarbor</span></a>';
+  return `<a class="brand" href="/"><span class="logo-mark"><i></i><i></i><i></i></span><span>BoardHarbor</span></a>`;
 }
 
 function renderAuth(mode = "login") {
@@ -112,6 +139,12 @@ function selectedBoard() {
 function renderWorkspace() {
   const user = state.session;
   const board = selectedBoard();
+  const contextName =
+    state.view === "my-work"
+      ? "My work"
+      : state.view === "activity"
+        ? "Activity"
+        : board?.name || "Boards";
   const content =
     state.view === "my-work"
       ? renderMyWork()
@@ -120,7 +153,7 @@ function renderWorkspace() {
         : board
           ? renderBoard(board)
           : renderEmpty();
-  app.innerHTML = `<div class="workspace"><aside class="sidebar">${logo()}<div class="org-summary"><span class="org-avatar">${escapeHtml(user.org[0])}</span><div><strong>${escapeHtml(user.org)}</strong><small>${escapeHtml(user.role.toLowerCase())}</small></div></div><nav><p>Workspace</p><button class="nav-item ${state.view === "boards" ? "active" : ""}" data-view="boards"><span>▦</span>Boards</button><button class="nav-item ${state.view === "my-work" ? "active" : ""}" data-view="my-work"><span>◷</span>My work</button><button class="nav-item ${state.view === "activity" ? "active" : ""}" data-view="activity"><span>◉</span>Activity</button><p>Boards</p>${state.boards.map((item) => `<button class="board-link ${state.view === "boards" && item.id === board?.id ? "selected" : ""}" data-board-id="${item.id}"><i style="background:${escapeHtml(item.color)}"></i>${escapeHtml(item.name)}</button>`).join("")}</nav><div class="profile"><span class="profile-avatar">${escapeHtml(initials(user.name))}</span><div><strong>${escapeHtml(user.name)}</strong><small>${escapeHtml(user.email)}</small></div><button id="logout" title="Sign out">Exit</button></div></aside><main class="content"><header class="topbar"><form id="search-form" class="search"><span>Search</span><input id="global-search" value="${escapeHtml(state.query)}" placeholder="Find an item" aria-label="Find an item">${state.query ? '<button id="clear-search" type="button">Clear</button>' : '<button type="submit">Go</button>'}</form><div class="top-actions"><button id="help" class="text-button">Help</button><button id="notifications" class="text-button">Notifications</button></div></header>${content}</main></div>`;
+  app.innerHTML = `<div class="workspace"><aside class="sidebar">${logo()}<button class="org-summary" type="button"><span class="org-avatar">${escapeHtml(user.org[0])}</span><div><strong>${escapeHtml(user.org)}</strong><small>Free workspace · ${escapeHtml(user.role.toLowerCase())}</small></div>${icon("chevron")}</button><nav><p>Workspace</p><button class="nav-item ${state.view === "boards" ? "active" : ""}" data-view="boards">${icon("board")}<span>Boards</span></button><button class="nav-item ${state.view === "my-work" ? "active" : ""}" data-view="my-work">${icon("work")}<span>My work</span></button><button class="nav-item ${state.view === "activity" ? "active" : ""}" data-view="activity">${icon("activity")}<span>Activity</span></button><p>My boards <b>${state.boards.length}</b></p>${state.boards.map((item) => `<button class="board-link ${state.view === "boards" && item.id === board?.id ? "selected" : ""}" data-board-id="${item.id}"><i style="background:${escapeHtml(item.color)}"></i><span>${escapeHtml(item.name)}</span><small>${item.items.length}</small></button>`).join("")}</nav><div class="sidebar-plan"><span>Workspace usage</span><strong>${state.boards.length} of 3 boards</strong><i><b style="width:${Math.min(100, (state.boards.length / 3) * 100)}%"></b></i></div><div class="profile"><span class="profile-avatar">${escapeHtml(initials(user.name))}</span><div><strong>${escapeHtml(user.name)}</strong><small>${escapeHtml(user.email)}</small></div><button id="logout" title="Sign out">Sign out</button></div></aside><main class="content"><header class="topbar"><div class="breadcrumb"><span>${escapeHtml(user.org)}</span>${icon("chevron")}<strong>${escapeHtml(contextName)}</strong></div><form id="search-form" class="search">${icon("search")}<input id="global-search" value="${escapeHtml(state.query)}" placeholder="Search tasks, boards, and people…" aria-label="Find an item">${state.query ? '<button id="clear-search" type="button">Clear</button>' : '<kbd>⌘ K</kbd>'}</form><div class="top-actions"><button id="notifications" class="icon-button" title="Notifications">${icon("bell")}<i></i></button></div></header>${content}</main></div>`;
   bindWorkspace();
   if (board) connectRealtime(board.id);
 }
@@ -144,13 +177,19 @@ function filteredItems(board) {
 function renderBoard(board) {
   const items = filteredItems(board);
   const userById = Object.fromEntries([[state.session.id, state.session.name]]);
+  const statusCounts = Object.fromEntries(
+    ["To do", "In progress", "Review", "Done"].map((status) => [
+      status,
+      board.items.filter((item) => item.status === status).length,
+    ]),
+  );
   const body =
     state.layout === "board"
       ? renderKanban(items, userById)
       : state.layout === "timeline"
         ? renderTimeline(items)
         : renderTable(items, userById);
-  return `<section class="board-page"><header class="page-header"><div class="title-row"><span class="board-icon" style="background:${escapeHtml(board.color)}">${escapeHtml(board.name[0])}</span><div><h1>${escapeHtml(board.name)}</h1><p>${escapeHtml(board.description)}</p></div></div><div class="page-actions"><span id="live-state" class="live-state"><i></i>Connecting</span>${["EDITOR", "OWNER"].includes(state.session.role) ? '<button id="new-item" class="primary">New item</button>' : ""}</div></header><div class="board-toolbar"><div><button class="tool ${state.layout === "table" ? "active" : ""}" data-layout="table">Table</button><button class="tool ${state.layout === "board" ? "active" : ""}" data-layout="board">Board</button><button class="tool ${state.layout === "timeline" ? "active" : ""}" data-layout="timeline">Timeline</button></div><div><button id="filter" class="tool ${state.filter !== "All" ? "active-control" : ""}">Filter: ${escapeHtml(state.filter)}</button><button id="sort" class="tool">Sort: ${state.sort === "newest" ? "Newest" : "Title"}</button><button id="board-details" class="tool">Details</button></div></div>${body}<footer class="board-footer"><span>${items.length} of ${board.items.length} items</span><span>Updated just now</span></footer></section>`;
+  return `<section class="board-page"><header class="page-header"><div class="title-row"><span class="board-icon" style="--board-color:${escapeHtml(board.color)}">${escapeHtml(board.name[0])}</span><div><div class="title-meta"><span>${icon("lock")} Private board</span><b>BH-${board.id}</b></div><h1>${escapeHtml(board.name)}</h1><p>${escapeHtml(board.description)}</p></div></div><div class="page-actions"><span id="live-state" class="live-state"><i></i>Connecting</span><button id="share-board" class="secondary-action">Share</button>${["EDITOR", "OWNER"].includes(state.session.role) ? `<button id="new-item" class="primary">${icon("plus")}New item</button>` : ""}</div></header><section class="metrics-grid"><article><span>Total tasks</span><strong>${board.items.length}</strong><small>Across this board</small></article><article><span>In progress</span><strong>${statusCounts["In progress"]}</strong><small>${board.items.length ? Math.round((statusCounts["In progress"] / board.items.length) * 100) : 0}% of all work</small></article><article><span>In review</span><strong>${statusCounts.Review}</strong><small>Awaiting approval</small></article><article><span>Completed</span><strong>${statusCounts.Done}</strong><small>${statusCounts["To do"]} still to do</small></article></section><section class="work-card"><div class="board-toolbar"><div class="view-tabs"><button class="tool ${state.layout === "table" ? "active" : ""}" data-layout="table">${icon("table")}Table</button><button class="tool ${state.layout === "board" ? "active" : ""}" data-layout="board">${icon("columns")}Board</button><button class="tool ${state.layout === "timeline" ? "active" : ""}" data-layout="timeline">${icon("timeline")}Timeline</button></div><div class="toolbar-actions"><button id="filter" class="tool ${state.filter !== "All" ? "active-control" : ""}">${icon("filter")}Filter${state.filter !== "All" ? `: ${escapeHtml(state.filter)}` : ""}</button><button id="sort" class="tool">${icon("sort")}Sort: ${state.sort === "newest" ? "Newest" : "Title"}</button><button id="board-details" class="tool details-button">•••</button></div></div>${body}<footer class="board-footer"><span>Showing ${items.length} of ${board.items.length} tasks</span><span><i></i>Synced just now</span></footer></section></section>`;
 }
 
 function renderTable(items, userById) {
@@ -200,14 +239,16 @@ function renderMyWork() {
   const items = queryItems(
     allItems().filter((item) => item.createdById === state.session.id),
   );
-  return `<section class="secondary-page"><h1>My work</h1><p>Items you created across ${escapeHtml(state.session.org)}.</p><div class="summary-card"><b>${items.length}</b><span>Items</span></div><section class="table-card"><table><thead><tr><th>Item</th><th>Board</th><th>Status</th><th>Created</th></tr></thead><tbody>${items.length ? items.map((item) => `<tr><td>${renderItemControl(item, item.boardId)}</td><td>${escapeHtml(item.boardName)}</td><td><span class="status ${statusClass(item.status)}">${escapeHtml(item.status)}</span></td><td>${new Date(item.createdAt).toLocaleDateString()}</td></tr>`).join("") : '<tr><td colspan="4" class="empty-row">No matching work</td></tr>'}</tbody></table></section></section>`;
+  const dueSoon = items.filter((item) => item.status !== "Done").length;
+  const completed = items.filter((item) => item.status === "Done").length;
+  return `<section class="secondary-page"><header class="secondary-header"><div><span class="page-kicker">PERSONAL WORKSPACE</span><h1>My work</h1><p>Everything assigned to you across ${escapeHtml(state.session.org)}.</p></div><span class="date-chip">${new Date().toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" })}</span></header><section class="metrics-grid personal-metrics"><article><span>Assigned to me</span><strong>${items.length}</strong><small>Across ${state.boards.length} board${state.boards.length === 1 ? "" : "s"}</small></article><article><span>Open work</span><strong>${dueSoon}</strong><small>Needs your attention</small></article><article><span>Completed</span><strong>${completed}</strong><small>${items.length ? Math.round((completed / items.length) * 100) : 0}% completion rate</small></article></section><section class="work-card personal-work"><header class="card-heading"><div><h2>Assigned tasks</h2><p>Your most recent work items</p></div><span>${items.length} total</span></header><section class="table-card"><table><thead><tr><th>Task</th><th>Board</th><th>Status</th><th>Created</th></tr></thead><tbody>${items.length ? items.map((item) => `<tr><td>${renderItemControl(item, item.boardId)}</td><td><span class="board-reference"><i></i>${escapeHtml(item.boardName)}</span></td><td><span class="status ${statusClass(item.status)}">${escapeHtml(item.status)}</span></td><td>${new Date(item.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</td></tr>`).join("") : '<tr><td colspan="4" class="empty-row">No matching work</td></tr>'}</tbody></table></section></section></section>`;
 }
 
 function renderActivity() {
   const items = queryItems(allItems()).sort(
     (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
   );
-  return `<section class="secondary-page"><h1>Activity</h1><p>Recent changes in ${escapeHtml(state.session.org)}.</p><div class="activity-list">${items.length ? items.map((item) => `<article><span class="profile-avatar">${escapeHtml(initials(item.createdById === state.session.id ? state.session.name : "Team member"))}</span><div><strong>${escapeHtml(item.createdById === state.session.id ? state.session.name : "A team member")}</strong> added <b>${escapeHtml(item.title)}</b><small>${escapeHtml(item.boardName)} - ${new Date(item.createdAt).toLocaleString()}</small></div></article>`).join("") : '<p class="empty-row">No matching activity</p>'}</div></section>`;
+  return `<section class="secondary-page"><header class="secondary-header"><div><span class="page-kicker">WORKSPACE FEED</span><h1>Recent activity</h1><p>Changes and updates across ${escapeHtml(state.session.org)}.</p></div><span class="live-state online"><i></i>Live</span></header><section class="activity-layout"><div class="activity-main"><header class="card-heading"><div><h2>All activity</h2><p>Latest first</p></div><button id="mark-read" class="quiet-action" type="button">Mark all read</button></header><div class="activity-list">${items.length ? items.map((item) => `<article><span class="activity-icon">${icon("plus")}</span><span class="profile-avatar">${escapeHtml(initials(item.createdById === state.session.id ? state.session.name : "Team member"))}</span><div><p><strong>${escapeHtml(item.createdById === state.session.id ? state.session.name : "A team member")}</strong> created <b>${escapeHtml(item.title)}</b></p><small>${escapeHtml(item.boardName)} · ${new Date(item.createdAt).toLocaleString()}</small></div><time>${new Date(item.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</time></article>`).join("") : '<p class="empty-row">No matching activity</p>'}</div></div><aside class="activity-summary"><span>This week</span><strong>${items.length}</strong><p>workspace updates</p><i><b style="width:${Math.min(100, items.length * 18)}%"></b></i><small>Activity is visible to members of this workspace.</small></aside></section></section>`;
 }
 
 function renderEmpty() {
@@ -215,6 +256,13 @@ function renderEmpty() {
 }
 
 function bindWorkspace() {
+  document.querySelector(".org-summary")?.addEventListener("click", () =>
+    openInfoModal(
+      state.session.org,
+      "You are working inside this private organization workspace.",
+      `<dl class="details"><dt>Organization ID</dt><dd>${state.session.orgId}</dd><dt>Your role</dt><dd>${escapeHtml(state.session.role.toLowerCase())}</dd><dt>Plan</dt><dd>Free</dd></dl>`,
+    ),
+  );
   document.querySelectorAll("[data-view]").forEach((button) =>
     button.addEventListener("click", () => {
       state.view = button.dataset.view;
@@ -260,14 +308,13 @@ function bindWorkspace() {
   document
     .querySelector("#board-details")
     ?.addEventListener("click", openBoardDetails);
-  document
-    .querySelector("#help")
-    .addEventListener("click", () =>
-      openInfoModal(
-        "Help",
-        "Create items, switch views, filter by status, and search for work in your organization.",
-      ),
-    );
+  document.querySelector("#share-board")?.addEventListener("click", () =>
+    openInfoModal(
+      "Share board",
+      "Invite workspace members to collaborate on this private board.",
+      '<div class="share-preview"><span>Private</span><p>Only members of this workspace can be invited.</p></div>',
+    ),
+  );
   document
     .querySelector("#notifications")
     .addEventListener("click", () =>
@@ -276,6 +323,9 @@ function bindWorkspace() {
         "You are all caught up. New board activity will appear here.",
       ),
     );
+  document
+    .querySelector("#mark-read")
+    ?.addEventListener("click", () => showToast("Activity marked as read"));
   document.querySelector("#search-form").addEventListener("submit", (event) => {
     event.preventDefault();
     state.query = document.querySelector("#global-search").value.trim();

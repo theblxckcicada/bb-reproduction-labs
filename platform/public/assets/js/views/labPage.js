@@ -4,6 +4,7 @@
 import { el, icon, formatDuration, formatClock } from "../util.js";
 import { difficultyBadge, statusPill, categoryBadge } from "../ui.js";
 import { renderMarkdown } from "../markdown.js";
+import { resolveLabUrl } from "../labUrl.mjs";
 
 /**
  * Build the lab page.
@@ -42,7 +43,7 @@ export function buildLabPage({ lab, progress, handlers }) {
     el(
       "span",
       {},
-      "Intentionally vulnerable — runs locally on 127.0.0.1, for authorized educational use only."
+      "Intentionally vulnerable — run only on a trusted local network for authorized educational use."
     ),
   ]);
 
@@ -80,6 +81,7 @@ export function buildLabPage({ lab, progress, handlers }) {
 
   function renderActions() {
     const status = snapshot.status;
+    const labUrl = resolveLabUrl(snapshot);
     const children = [];
 
     if (status === "running") {
@@ -88,8 +90,7 @@ export function buildLabPage({ lab, progress, handlers }) {
           "button",
           {
             class: "btn btn-primary",
-            onclick: () =>
-              snapshot.url && window.open(snapshot.url, "_blank", "noopener,noreferrer"),
+            onclick: () => labUrl && window.open(labUrl, "_blank", "noopener,noreferrer"),
           },
           [icon("external", 14), "Open Lab"]
         ),
@@ -119,18 +120,19 @@ export function buildLabPage({ lab, progress, handlers }) {
 
   function renderUrl() {
     urlHost.replaceChildren();
-    if (snapshot.status === "running" && snapshot.url) {
+    const labUrl = resolveLabUrl(snapshot);
+    if (snapshot.status === "running" && labUrl) {
       const copyBtn = el(
         "button",
         {
           class: "btn btn-ghost btn-sm",
           title: "Copy URL",
-          onclick: () => navigator.clipboard?.writeText(snapshot.url),
+          onclick: () => navigator.clipboard?.writeText(labUrl),
         },
         [icon("copy", 12)]
       );
       urlHost.appendChild(
-        el("div", { class: "lab-url" }, [el("span", {}, snapshot.url), copyBtn])
+        el("div", { class: "lab-url" }, [el("span", {}, labUrl), copyBtn])
       );
     }
   }

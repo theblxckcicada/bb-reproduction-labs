@@ -1,70 +1,94 @@
 # BoardHarbor Wildcard WebSocket Leak
 
-BoardHarbor is an interactive, fictional work-management application that reproduces a cross-tenant realtime data leak caused by inconsistent interpretation of STOMP subscription destinations.
+BoardHarbor is a local, fictional work-management product that faithfully
+reproduces the authorization/dispatch mismatch documented in the source bug
+bounty report. It is a working multi-tenant application rather than an exploit
+page or payload generator.
 
-## What is reproduced
+## Fidelity to the reported behavior
 
-- Two independent organizations and principals.
-- A Viewer role with a synthetic bearer token.
-- REST endpoints that correctly enforce board ownership.
-- A SockJS-compatible WebSocket transport carrying STOMP 1.2 frames.
-- Correct denial of an explicitly named foreign board topic.
-- Vulnerable acceptance of `/topic/**` followed by broker-side wildcard expansion.
-- Full private item events and administrative organization events delivered cross-tenant.
-- A remediated mode that rejects wildcard destinations.
+| Reported behavior | BoardHarbor implementation |
+|---|---|
+| Lowest-privilege Viewer in one organization | Avery, `VIEWER`, Northwind Studio (`orgId=71001`) |
+| Separate controlled victim organization | Morgan, `EDITOR`, Contoso Workshop (`orgId=72002`) |
+| Private foreign board | Product Launch (`boardId=99002`) |
+| Bearer with `sub`, `orgId`, and `userType` claims | Locally signed one-hour JWT from the normal login flow |
+| SockJS transport carrying STOMP 1.2 | `/websocket/{server}/{session}/websocket` |
+| Frontend origin required by the handshake | WebSocket upgrades require the exact application origin |
+| Foreign REST request returns `404` | `GET /api/boards/99002` returns `404` to Avery |
+| Exact foreign topic is denied | `/topic/boards/99002` returns STOMP `ERROR: Access denied` |
+| Recursive wildcard is accepted | `/topic/**` is registered in vulnerable mode |
+| Ordinary victim activity leaks live | Full private board and administrative events are delivered |
+| Recommended wildcard rejection fixes the issue | `BROKER_MODE=fixed` rejects client patterns |
 
-The original vendor name, domains, accounts, and identifiers are not used.
+Vendor names, domains, people, and identifiers are deliberately replaced.
+Protocol shape, roles, controls, vulnerable decision, and observable result are
+preserved.
 
 ## Run
 
+Requires Node.js 20 or newer.
+
 ```powershell
+cd F:\Workspace\Projects\Development\01-Security-Labs\bb-reproduction-labs\Labs\bb-006-boardharbor-wildcard-websocket
 npm install
 npm start
 ```
 
-Open <http://127.0.0.1:5080>. The application is presented as the normal BoardHarbor product; reproduction guidance is intentionally kept outside its UI.
+Open <http://127.0.0.1:5080>. After startup, no additional npm command is
+required.
 
-Select **Create account** to create a new isolated workspace. Registration creates an Owner account, an organization, and an empty starter board, then signs the user in automatically. Accounts and board data are stored in `data/db.json` and survive server restarts.
-
-Editors and Owners can select an item from the table, board, timeline, or My work view to update its title and status. Changes are persisted and delivered to other open sessions over the board's realtime topic.
-
-## Test accounts
+## Controlled accounts
 
 | Organization | Role | Email | Password |
 |---|---|---|---|
 | Northwind Studio | Viewer | `avery@northwind.test` | `Northwind!2026` |
 | Contoso Workshop | Editor | `morgan@contoso.test` | `Contoso!2026` |
 
-Use separate browser profiles for the accounts. Morgan can add items to the private Product Launch board. Avery has a different organization and board, and its normal client subscribes only to its concrete board topic.
+Use separate browser profiles or one normal and one private window so the
+sessions remain genuinely isolated.
 
-## CLI reproduction
+## Participant task
 
-Keep the server running in one terminal. In another, run:
+Investigate the application as a normal user:
 
-```powershell
-# Exact foreign destination: Access denied
-npm run poc -- /topic/boards/99002
+1. Observe how the web client authenticates its REST and realtime traffic.
+2. Establish the access-control boundary between the two organizations.
+3. Build a Python or shell-driven SockJS/STOMP client against the running
+   WebSocket endpoint.
+4. Preserve a negative control before testing destination patterns.
+5. Generate normal activity as the second controlled user and capture evidence.
 
-# Vulnerable wildcard: receives Contoso's private event
-npm run poc -- /topic/**
+The normal BoardHarbor UI contains no exploit helper, realtime inspector, or
+button that generates victim traffic. Detailed commands and reference clients
+are available only through the lab platform's **Reveal Solution** section.
 
-# Fixed broker: restart the server with the fix enabled
-$env:BROKER_MODE = "fixed"
-npm start
-# Then run npm run poc -- /topic/** in another terminal
-```
+## Reference solution formats
 
-When the platform assigns a different port, pass its URL:
+The revealed solution supports either:
 
-```powershell
-$env:BASE_URL = "http://127.0.0.1:4100"
-npm run poc -- /topic/**
-```
+- `solution/poc.py` — the direct Python SockJS/STOMP client, using
+  `websocket-client`.
+- `solution/poc.sh` — a POSIX shell launcher for the same client.
 
-## Architecture decision
+Neither uses npm. The victim action remains manual in the second browser
+session; the reference client never receives Morgan's token.
 
-The lab keeps authorization and broker dispatch as separate functions because that separation is the vulnerability. `canSubscribeLiteral` reproduces the flawed interceptor, while `topicMatches` models the broker's later Ant-style expansion. The fixed path rejects client-supplied patterns before any subscription is registered.
+## Architecture
+
+The vulnerable code intentionally separates subscription authorization from
+broker dispatch. `canSubscribeLiteral` authorizes the literal destination
+submitted by the client. `topicMatches` later applies Ant-style `*` and `**`
+matching. A concrete foreign topic resolves to an object and is denied, while a
+pattern resolves to no protected object during authorization and is expanded
+only during delivery.
+
+Fixed mode rejects wildcard characters before registration and retains the
+normal concrete-topic authorization checks.
 
 ## Safety
 
-All data and credentials are synthetic and held in memory. The server binds to `127.0.0.1` by default. Do not expose intentionally vulnerable training applications to shared or public networks.
+All accounts and data are synthetic. The intentionally vulnerable service
+binds to `127.0.0.1` by default and should not be exposed on a shared or public
+network. Tokens are signed with an in-memory key, expire after one hour, and
+become invalid whenever the server restarts.

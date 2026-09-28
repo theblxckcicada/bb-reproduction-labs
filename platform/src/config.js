@@ -12,6 +12,8 @@ require("dotenv").config();
 
 const path = require("path");
 
+const { resolveConnectHost } = require("./networkHost");
+
 const PLATFORM_ROOT = path.resolve(__dirname, "..");
 const REPO_ROOT = path.resolve(PLATFORM_ROOT, "..");
 
@@ -72,6 +74,7 @@ const labsDir = process.env.LABS_DIR
   : path.join(REPO_ROOT, "Labs");
 
 const portRange = parsePortRange(process.env.LAB_PORT_RANGE, 4100, 4199);
+const bindHost = process.env.BIND_HOST || "127.0.0.1";
 const platformPort = parseIntEnv("PORT", process.env.PORT, 8080, {
   min: 1,
   max: 65535,
@@ -86,7 +89,8 @@ if (platformPort >= portRange.start && platformPort <= portRange.end) {
 
 const config = Object.freeze({
   brand: process.env.BRAND_NAME || "Ovawatch Labs",
-  host: process.env.BIND_HOST || "127.0.0.1",
+  host: bindHost,
+  connectHost: resolveConnectHost(bindHost),
   port: platformPort,
 
   platformRoot: PLATFORM_ROOT,

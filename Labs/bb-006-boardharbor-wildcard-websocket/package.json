@@ -7,8 +7,7 @@
   "type": "commonjs",
   "scripts": {
     "start": "node src/server.js",
-    "check": "node --check src/server.js && node --check public/app.js && node --check scripts/poc.js && node --test test/lab.test.js",
-    "poc": "node scripts/poc.js"
+    "check": "node --check src/server.js && node --check public/app.js && node --test test/lab.test.js"
   },
   "engines": { "node": ">=20" },
   "dependencies": { "ws": "8.21.0" }

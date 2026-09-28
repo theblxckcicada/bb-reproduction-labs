@@ -11,9 +11,13 @@ const PORT = Number.parseInt(process.env.PORT || "5080", 10);
 const BROKER_MODE =
   process.env.BROKER_MODE === "fixed" ? "fixed" : "vulnerable";
 const PUBLIC_DIR = path.resolve(__dirname, "../public");
-const DATA_FILE = path.resolve(__dirname, "../data/db.json");
+const DATA_FILE = process.env.BOARDHARBOR_DATA_FILE
+  ? path.resolve(process.env.BOARDHARBOR_DATA_FILE)
+  : path.resolve(__dirname, "../data/db.json");
 const NUL = "\u0000";
 const PASSWORD_SALT = "boardharbor-local-lab";
+const ACCESS_TOKEN_TTL_SECONDS = 60 * 60;
+const TOKEN_SECRET = crypto.randomBytes(32);
 
 function hashPassword(password) {
   return crypto.scryptSync(password, PASSWORD_SALT, 32);
@@ -28,7 +32,6 @@ const users = [
     role: "VIEWER",
     orgId: 71001,
     org: "Northwind Studio",
-    accessToken: "bh_at_northwind_viewer_7f2c91",
   },
   {
     id: 42001,
@@ -38,7 +41,6 @@ const users = [
     role: "EDITOR",
     orgId: 72002,
     org: "Contoso Workshop",
-    accessToken: "bh_at_contoso_editor_4a8d16",
   },
 ];
 const boards = new Map([
@@ -90,10 +92,13 @@ let nextBoardId = 100000;
 function saveData() {
   fs.mkdirSync(path.dirname(DATA_FILE), { recursive: true });
   const value = {
-    users: users.map((user) => ({
-      ...user,
-      passwordHash: user.passwordHash.toString("hex"),
-    })),
+    users: users.map((user) => {
+      const { accessToken: _legacyToken, ...persistedUser } = user;
+      return {
+        ...persistedUser,
+        passwordHash: user.passwordHash.toString("hex"),
+      };
+    }),
     boards: [...boards.values()],
   };
   fs.writeFileSync(DATA_FILE, `${JSON.stringify(value, null, 2)}\n`, "utf8");
@@ -107,10 +112,13 @@ function loadData() {
   users.splice(
     0,
     users.length,
-    ...value.users.map((user) => ({
-      ...user,
-      passwordHash: Buffer.from(user.passwordHash, "hex"),
-    })),
+    ...value.users.map((user) => {
+      const { accessToken: _legacyToken, ...persistedUser } = user;
+      return {
+        ...persistedUser,
+        passwordHash: Buffer.from(user.passwordHash, "hex"),
+      };
+    }),
   );
   boards.clear();
   for (const board of value.boards) boards.set(board.id, board);
@@ -127,6 +135,64 @@ function loadData() {
 
 loadData();
 
+function signTokenPart(value) {
+  return Buffer.from(JSON.stringify(value)).toString("base64url");
+}
+
+/**
+ * Issue the short-lived JWT-like bearer used by both REST and STOMP clients.
+ */
+function issueAccessToken(user) {
+  const now = Math.floor(Date.now() / 1000);
+  const header = signTokenPart({ alg: "HS256", typ: "JWT" });
+  const payload = signTokenPart({
+    sub: String(user.id),
+    orgId: user.orgId,
+    userType: user.role,
+    iat: now,
+    exp: now + ACCESS_TOKEN_TTL_SECONDS,
+  });
+  const signature = crypto
+    .createHmac("sha256", TOKEN_SECRET)
+    .update(`${header}.${payload}`)
+    .digest("base64url");
+  return `${header}.${payload}.${signature}`;
+}
+
+/**
+ * Validate a bearer token and resolve its subject to the current local user.
+ */
+function userFromAccessToken(token) {
+  const parts = String(token || "").split(".");
+  if (parts.length !== 3) return null;
+  const [header, payload, suppliedSignature] = parts;
+  const expectedSignature = crypto
+    .createHmac("sha256", TOKEN_SECRET)
+    .update(`${header}.${payload}`)
+    .digest("base64url");
+  const supplied = Buffer.from(suppliedSignature);
+  const expected = Buffer.from(expectedSignature);
+  if (
+    supplied.length !== expected.length ||
+    !crypto.timingSafeEqual(supplied, expected)
+  )
+    return null;
+  try {
+    const claims = JSON.parse(Buffer.from(payload, "base64url").toString());
+    if (claims.exp <= Math.floor(Date.now() / 1000)) return null;
+    const user = users.find((candidate) => String(candidate.id) === claims.sub);
+    if (
+      !user ||
+      user.orgId !== claims.orgId ||
+      user.role !== claims.userType
+    )
+      return null;
+    return user;
+  } catch {
+    return null;
+  }
+}
+
 function publicUser(user, includeToken = false) {
   const value = {
     id: user.id,
@@ -136,7 +202,7 @@ function publicUser(user, includeToken = false) {
     orgId: user.orgId,
     org: user.org,
   };
-  if (includeToken) value.accessToken = user.accessToken;
+  if (includeToken) value.accessToken = issueAccessToken(user);
   return value;
 }
 
@@ -190,7 +256,7 @@ function authenticate(request) {
     /^Bearer\s+/i,
     "",
   );
-  if (bearer) return users.find((user) => user.accessToken === bearer) || null;
+  if (bearer) return userFromAccessToken(bearer);
   const sessionId = cookies(request).bh_session;
   const userId = sessionId ? sessions.get(sessionId) : null;
   return users.find((user) => user.id === userId) || null;
@@ -209,10 +275,20 @@ function topicMatches(pattern, topic) {
 }
 
 function canSubscribeLiteral(user, destination) {
-  const match = /^\/topic\/boards\/(\d+)$/.exec(destination);
-  if (!match) return destination.startsWith("/topic/");
-  const board = boards.get(Number(match[1]));
-  return Boolean(board && board.orgId === user.orgId);
+  const boardMatch = /^\/topic\/boards\/(\d+)$/.exec(destination);
+  if (boardMatch) {
+    const board = boards.get(Number(boardMatch[1]));
+    return Boolean(board && board.orgId === user.orgId);
+  }
+  const organizationMatch =
+    /^\/topic\/(?:admin\/(?:organizations|workspaces)|organizations|boardharbor-workspaces)\/(\d+)$/.exec(
+      destination,
+    );
+  if (organizationMatch)
+    return Number(organizationMatch[1]) === user.orgId;
+  // Vulnerable behavior: a pattern names no concrete protected object, so the
+  // interceptor falls through even though the broker expands it later.
+  return destination.startsWith("/topic/");
 }
 
 function canSubscribeFixed(user, destination) {
@@ -363,7 +439,6 @@ async function route(request, response) {
         role: "OWNER",
         orgId: organizationId,
         org: organizationName,
-        accessToken: `bh_at_${crypto.randomBytes(16).toString("hex")}`,
       };
       users.push(user);
       boards.set(boardId, {
@@ -542,6 +617,8 @@ server.on("upgrade", (request, socket, head) => {
   );
   if (!/^\/websocket\/[^/]+\/[^/]+\/websocket$/.test(url.pathname))
     return socket.destroy();
+  const expectedOrigin = `http://${request.headers.host || "localhost"}`;
+  if (request.headers.origin !== expectedOrigin) return socket.destroy();
   websocketServer.handleUpgrade(request, socket, head, (websocket) =>
     websocketServer.emit("connection", websocket),
   );
@@ -569,7 +646,7 @@ websocketServer.on("connection", (socket) => {
           frame.headers.authorization ||
           ""
         ).replace(/^Bearer\s+/i, "");
-        client.user = users.find((user) => user.accessToken === token) || null;
+        client.user = userFromAccessToken(token);
         if (!client.user) {
           sockSend(
             socket,
@@ -622,6 +699,8 @@ module.exports = {
   topicMatches,
   canSubscribeLiteral,
   canSubscribeFixed,
+  issueAccessToken,
+  userFromAccessToken,
   stompFrame,
   parseStomp,
 };
